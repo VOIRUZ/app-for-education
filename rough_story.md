@@ -179,4 +179,5 @@ Children should learn:
 - Why temperature control is necessary.
 - How astronauts manage limited food and resources.
 - How scientific experiments help solve problems.
-The ultimate goal: Children should understand that surviving on the Moon requires science, planning, experimentation, and smart resource management.
+The ultimate goal: Children should understand that surviving on the Moon requires science, planning, experimentation, and smart resource management/ resource management
+
