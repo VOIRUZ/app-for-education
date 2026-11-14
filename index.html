@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARS OUTPOST: SEVEN DAYS TO SURVIVE | NASA WebAssembly Survival Simulation</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- CRT Terminal Scanline Overlay -->
+  <div class="terminal-overlay"></div>
+
+  <!-- Main Game Container -->
+  <div class="game-container">
+    
+    <!-- Top HUD Header -->
+    <header class="hud-header">
+      <div class="header-left">
+        <span class="mission-tag">NASA / ECLSS PROTOCOL &bull; SOL RESUPPLY CONTINGENCY</span>
+        <h1 class="game-title">MARS OUTPOST: <span class="highlight">SEVEN DAYS TO SURVIVE</span></h1>
+      </div>
+
+      <div class="header-center">
+        <div class="status-badge" id="hud-sol-badge">
+          <span class="badge-label">MISSION TIMELINE</span>
+          <span class="badge-value" id="hud-sol-display">SOL 1 of 7</span>
+        </div>
+        <div class="status-badge" id="hud-eta-badge">
+          <span class="badge-label">RESUPPLY FREIGHTER (VALKYRIE-1)</span>
+          <span class="badge-value highlight-cyan" id="hud-eta-display">ETA: 6 SOLS</span>
+        </div>
+        <div class="status-pill active" id="wasm-status-badge">
+          WASM ENGINE INITIALIZING...
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button id="btn-field-manual" class="btn-hud" title="NASA Science Field Manual">
+          <span>📖 FIELD MANUAL</span>
+        </button>
+        <button id="btn-restart" class="btn-hud btn-danger" title="Restart Mission">
+          <span>↺ RESTART</span>
+        </button>
+        <button id="sound-toggle" class="btn-icon" title="Toggle Terminal Audio">
+          <span id="sound-icon">🔊</span>
+        </button>
+      </div>
+
+      <!-- Top Sol Progress Bar -->
+      <div class="header-progress-bar">
+        <div class="header-progress-fill" id="hud-sol-progress" style="width: 14.2%;"></div>
+      </div>
+    </header>
+
+    <!-- Main Game Grid -->
+    <main class="dashboard-grid">
+
+      <!-- COLUMN 1: Vital Telemetry & Resources (Phase 2) -->
+      <section class="panel telemetry-panel">
+        <div class="panel-header">
+          <h2>OUTPOST TELEMETRY</h2>
+          <span class="pulse-indicator">● LIVE ECLSS FEED</span>
+        </div>
+
+        <div class="meters-container">
+          <!-- Oxygen -->
+          <div class="meter-card" id="card-o2">
+            <div class="meter-header">
+              <span class="meter-icon">💨</span>
+              <span class="meter-name">OXYGEN (MOXIE / LiOH)</span>
+              <span class="meter-val" id="val-o2">60.0 / 100 kg</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-cyan" id="bar-o2" style="width: 60%;"></div>
+            </div>
+            <div class="meter-footer">
+              <span class="meter-subtext">Solid Oxide Electrolysis</span>
+              <span class="meter-delta positive" id="delta-o2">Net: +1.0 kg/sol</span>
+            </div>
+          </div>
+
+          <!-- Power Reserves -->
+          <div class="meter-card" id="card-power">
+            <div class="meter-header">
+              <span class="meter-icon">⚡</span>
+              <span class="meter-name">POWER RESERVES (BATTERY + RTG)</span>
+              <span class="meter-val" id="val-power">120 / 160 kWh</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-amber" id="bar-power" style="width: 75%;"></div>
+            </div>
+            <div class="meter-footer">
+              <span class="meter-subtext">Photovoltaic &amp; Nuclear RTG</span>
+              <span class="meter-delta negative" id="delta-power">Net: -14.3 kWh/sol</span>
+            </div>
+          </div>
+
+          <!-- Clean Water -->
+          <div class="meter-card" id="card-water">
+            <div class="meter-header">
+              <span class="meter-icon">💧</span>
+              <span class="meter-name">CLEAN WATER (ECLSS RECYCLED)</span>
+              <span class="meter-val" id="val-water">110.0 / 180 L</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-blue" id="bar-water" style="width: 61%;"></div>
+            </div>
+            <div class="meter-footer">
+              <span class="meter-subtext">Vapor Compression Distillation</span>
+              <span class="meter-delta negative" id="delta-water">Net: -1.0 L/sol</span>
+            </div>
+          </div>
+
+          <!-- Food Rations -->
+          <div class="meter-card" id="card-food">
+            <div class="meter-header">
+              <span class="meter-icon">🥫</span>
+              <span class="meter-name">FOOD RATIONS (RETORT + GREENHOUSE)</span>
+              <span class="meter-val" id="val-food">72.0 / 100 packs</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-green" id="bar-food" style="width: 72%;"></div>
+            </div>
+            <div class="meter-footer">
+              <span class="meter-subtext">Aeroponic Microgreens Yield</span>
+              <span class="meter-delta negative" id="delta-food">Net: -8.5 packs/sol</span>
+            </div>
+          </div>
+
+          <!-- Outpost Hull Integrity -->
+          <div class="meter-card" id="card-hull">
+            <div class="meter-header">
+              <span class="meter-icon">🛡️</span>
+              <span class="meter-name">HULL INTEGRITY (HABITAT DOMES)</span>
+              <span class="meter-val" id="val-hull">95 / 100%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-purple" id="bar-hull" style="width: 95%;"></div>
+            </div>
+            <div class="meter-footer">
+              <span class="meter-subtext">Micrometeorite Whipple Shielding</span>
+              <span class="meter-delta negative" id="delta-hull">Wear: -1.5%/sol</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Environmental Sensors Widget -->
+        <div class="sensors-widget">
+          <div class="sensors-header">
+            <h3>MARTIAN SURFACE SENSORS</h3>
+            <span class="sensor-loc">CHRYSE PLANITIA &bull; 22.4° N</span>
+          </div>
+          <div class="sensors-grid">
+            <div class="sensor-item">
+              <span class="sensor-label">SURFACE TEMP</span>
+              <span class="sensor-val" id="sensor-temp">-62.0°C</span>
+            </div>
+            <div class="sensor-item">
+              <span class="sensor-label">DUST OPACITY</span>
+              <span class="sensor-val" id="sensor-tau">Tau 0.35</span>
+            </div>
+            <div class="sensor-item">
+              <span class="sensor-label">SOLAR FLUX</span>
+              <span class="sensor-val" id="sensor-solar">560 W/m²</span>
+            </div>
+            <div class="sensor-item">
+              <span class="sensor-label">RADIATION DOSE</span>
+              <span class="sensor-val" id="sensor-rad">0.65 mSv/sol</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Crew Roster Cards -->
+        <div class="crew-section">
+          <div class="crew-header">
+            <h3>ASTRONAUT CREW ROSTER</h3>
+            <span class="crew-count">4 ASTRONAUTS</span>
+          </div>
+          <div class="crew-list" id="crew-roster-container">
+            <!-- Dynamically populated from C++ WASM state -->
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: Interactive Outpost Canvas & EVA Operations (Phase 3) -->
+      <section class="panel center-panel">
+        <div class="panel-header">
+          <div class="header-title-group">
+            <h2>OUTPOST CHRYSANTHEMUM-4</h2>
+            <span class="header-sub">INTERACTIVE HABITAT &bull; WEBGL2/CANVAS ENGINE</span>
+          </div>
+          <div class="ap-group">
+            <span class="ap-label">EVA ACTION POINTS:</span>
+            <div class="ap-dots" id="ap-dots-container"></div>
+            <span class="ap-val highlight-amber" id="ap-display">3 / 3 AP</span>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas Viewport -->
+        <div class="canvas-wrapper">
+          <canvas id="outpost-canvas"></canvas>
+          <div class="canvas-watermark">NASA / ARTEMIS BASE CAMP ARCHITECTURE</div>
+        </div>
+
+        <!-- Outpost Operations & EVA Maintenance Action Grid -->
+        <div class="action-grid-panel">
+          <div class="actions-section-header">
+            <h3>EVA MAINTENANCE &amp; PREVENTATIVE REPAIRS (USES 1 AP)</h3>
+          </div>
+          <div class="action-buttons-row">
+            <button class="action-btn" id="btn-eva-solar" title="Clean electrostatic dust off solar panels">
+              <span class="act-icon">🧹</span>
+              <div class="act-info">
+                <span class="act-name">Clean Solar Arrays</span>
+                <span class="act-desc">Removes dust layer (+30% Gen)</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btn-eva-moxie" title="Service high-temperature electrolysis seals">
+              <span class="act-icon">⚙️</span>
+              <div class="act-info">
+                <span class="act-name">Service MOXIE Plant</span>
+                <span class="act-desc">Restores 100% O₂ generation</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btn-eva-water" title="De-scale distillation tubes and flush filters">
+              <span class="act-icon">🔧</span>
+              <div class="act-info">
+                <span class="act-name">Overhaul ECLSS Distiller</span>
+                <span class="act-desc">Restores 95% water recovery</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btn-eva-hull" title="Apply Kevlar patch and vacuum epoxy to domes">
+              <span class="act-icon">🛡️</span>
+              <div class="act-info">
+                <span class="act-name">Patch Whipple Hull</span>
+                <span class="act-desc">Repairs fissures (+15% Hull)</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btn-eva-medical" title="Administer vitamin infusion and light therapy">
+              <span class="act-icon">💉</span>
+              <div class="act-info">
+                <span class="act-name">Medical &amp; Morale Cycle</span>
+                <span class="act-desc">Heals crew (+25% Health/Morale)</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sol Day Advancement Control -->
+        <div class="day-advance-bar">
+          <div class="advance-info">
+            <span class="advance-title">READY TO COMMENCE MARTIAN NIGHT?</span>
+            <span class="advance-sub">Resources will be consumed and the unexpected event will resolve.</span>
+          </div>
+          <button class="btn-advance" id="btn-advance-day">
+            <span>RESOLVE DAILY SCENARIO &amp; ADVANCE SOL &rarr;</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- COLUMN 3: Power Grid Dispatch & Policies (Phase 2 & Terminal) -->
+      <section class="panel controls-panel">
+        <div class="panel-header">
+          <h2>POWER GRID &amp; POLICIES</h2>
+          <span class="pulse-indicator">● SMART DISPATCH</span>
+        </div>
+
+        <!-- Power Allocation Dispatch Sliders -->
+        <div class="subsystems-grid">
+          <div class="subsystems-section-header">
+            <h3>ELECTRICAL DISPATCH (% ALLOCATED)</h3>
+          </div>
+
+          <!-- Life Support MOXIE -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="sub-label">💨 MOXIE O₂ &amp; ECLSS Scrubbers</span>
+              <span class="sub-val" id="val-pwr-life">100%</span>
+            </div>
+            <input type="range" min="0" max="100" value="100" class="tech-slider" id="slider-pwr-life">
+          </div>
+
+          <!-- Water Recycler -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="sub-label">💧 ECLSS Water Recovery (UPA)</span>
+              <span class="sub-val" id="val-pwr-water">100%</span>
+            </div>
+            <input type="range" min="0" max="100" value="100" class="tech-slider" id="slider-pwr-water">
+          </div>
+
+          <!-- Aeroponics -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="sub-label">🌱 Aeroponics Grow Lights</span>
+              <span class="sub-val" id="val-pwr-aero">100%</span>
+            </div>
+            <input type="range" min="0" max="100" value="100" class="tech-slider" id="slider-pwr-aero">
+          </div>
+
+          <!-- Magnetic Shielding -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="sub-label">🛡️ Magnetic Radiation Barrier</span>
+              <span class="sub-val" id="val-pwr-shield">100%</span>
+            </div>
+            <input type="range" min="0" max="100" value="100" class="tech-slider" id="slider-pwr-shield">
+          </div>
+
+          <!-- Comms & Guidance Beacon -->
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="sub-label">📡 Deep-Space Guidance Beacon</span>
+              <span class="sub-val" id="val-pwr-beacon">100%</span>
+            </div>
+            <input type="range" min="0" max="100" value="100" class="tech-slider" id="slider-pwr-beacon">
+          </div>
+        </div>
+
+        <!-- Rationing Policy Toggles -->
+        <div class="policy-group">
+          <div class="policy-section-header">
+            <h3>CREW RATIONING DIRECTIVES</h3>
+          </div>
+
+          <div class="policy-item">
+            <span class="policy-label">FOOD RATIONS:</span>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="food-ration" value="0">
+                <span>HALF (6/sol)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="food-ration" value="1" checked>
+                <span>NORMAL (12/sol)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="food-ration" value="2">
+                <span>FEAST (18/sol)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="policy-item">
+            <span class="policy-label">WATER RATIONS:</span>
+            <div class="radio-pill-group">
+              <label class="radio-pill">
+                <input type="radio" name="water-ration" value="0">
+                <span>HALF (6 L/sol)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="water-ration" value="1" checked>
+                <span>NORMAL (11.2 L/sol)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Terminal Stream -->
+        <div class="terminal-panel-group">
+          <div class="terminal-header">
+            <h3>OUTPOST TELEMETRY TERMINAL</h3>
+            <span class="live-dot">● REC</span>
+          </div>
+          <div class="terminal-window" id="terminal-window">
+            <div class="terminal-logs" id="terminal-log-content"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- MODALS SYSTEM (PHASES 1, 4, 5, MANUAL, VICTORY, DEFEAT)                 -->
+  <!-- ======================================================================== -->
+
+  <!-- Phase 1: Daily Situation Report Modal -->
+  <div class="modal-backdrop" id="modal-briefing">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-badge badge-cyan" id="briefing-badge">SITUATION REPORT</span>
+        <h2 id="briefing-sol-title">SOL 1: ANOMALY CONFIRMED</h2>
+        <span class="modal-subtitle" id="briefing-subtitle">Earth Supply Shipment Navigation Malfunction</span>
+      </div>
+      <div class="modal-body">
+        <p id="briefing-desc"></p>
+        <div class="briefing-env-box">
+          <div class="env-chip"><span>Ambient Temp:</span> <strong id="briefing-temp">-62.0°C</strong></div>
+          <div class="env-chip"><span>Dust Opacity:</span> <strong id="briefing-tau">Tau 0.35</strong></div>
+          <div class="env-chip"><span>Solar Flux:</span> <strong id="briefing-solar">560 W/m²</strong></div>
+          <div class="env-chip"><span>Radiation Level:</span> <strong id="briefing-rad">0.65 mSv/sol</strong></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-start-sol">ACKNOWLEDGE &amp; COMMENCE OPERATIONS &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4: Unexpected Event Decision Modal -->
+  <div class="modal-backdrop" id="modal-event">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <span class="modal-badge badge-red">EMERGENCY PROTOCOL</span>
+        <h2 id="event-title">CRITICAL INCIDENT</h2>
+      </div>
+      <div class="modal-body">
+        <p class="event-narrative-text" id="event-desc"></p>
+        
+        <!-- NASA Science Callout -->
+        <div class="science-box">
+          <div class="science-header">
+            <span class="sci-icon">🔬</span>
+            <strong>NASA SCIENTIFIC &amp; ENGINEERING CONTEXT</strong>
+          </div>
+          <p id="event-science-text"></p>
+        </div>
+
+        <div class="event-options-title">SELECT TACTICAL RESPONSE:</div>
+        <div class="event-options-list" id="event-options-container">
+          <!-- Dynamically populated choices -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5: End-of-Sol Telemetry Audit Modal -->
+  <div class="modal-backdrop" id="modal-debrief">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-badge badge-green">DAILY LOG AUDIT</span>
+        <h2 id="debrief-sol-title">SOL 1 TELEMETRY DEBRIEF</h2>
+      </div>
+      <div class="modal-body">
+        <div class="debrief-grid">
+          <div class="debrief-item">
+            <span class="debrief-label">OXYGEN RESERVES</span>
+            <span class="debrief-val" id="audit-o2">--</span>
+          </div>
+          <div class="debrief-item">
+            <span class="debrief-label">POWER RESERVES</span>
+            <span class="debrief-val" id="audit-pwr">--</span>
+          </div>
+          <div class="debrief-item">
+            <span class="debrief-label">WATER RESERVES</span>
+            <span class="debrief-val" id="audit-water">--</span>
+          </div>
+          <div class="debrief-item">
+            <span class="debrief-label">FOOD RATIONS</span>
+            <span class="debrief-val" id="audit-food">--</span>
+          </div>
+        </div>
+        <div class="debrief-notes">
+          All changes have been computed in WebAssembly memory and committed to the expedition state.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-debrief-next">COMMENCE NEXT SOL &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NASA Field Manual Modal -->
+  <div class="modal-backdrop" id="modal-manual">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <span class="modal-badge badge-cyan">NASA / CSA EDUCATIONAL REFERENCE</span>
+        <h2>EXPEDITION FIELD MANUAL &amp; SCIENCE COMPENDIUM</h2>
+      </div>
+      <div class="modal-body manual-scrollable" id="manual-articles-container">
+        <!-- Dynamically rendered science articles -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btn-close-manual">CLOSE FIELD MANUAL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module Inspector Modal -->
+  <div class="modal-backdrop" id="modal-inspector">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-badge badge-amber">SUBSYSTEM DIAGNOSTIC</span>
+        <h2 id="inspect-name">OUTPOST MODULE</h2>
+      </div>
+      <div class="modal-body">
+        <div class="inspect-stats-grid">
+          <div class="inspect-chip">
+            <span>OPERATING CONDITION:</span>
+            <strong id="inspect-cond">95%</strong>
+          </div>
+          <div class="inspect-chip">
+            <span>POWER ALLOCATION:</span>
+            <strong id="inspect-pwr">100%</strong>
+          </div>
+        </div>
+        <p class="inspect-desc">Routine preventative maintenance restores degraded seals, removes dust, and ensures closed-loop operational efficiency.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-inspect-repair">PERFORM MAINTENANCE (USES 1 AP)</button>
+        <button class="btn-primary" id="btn-close-inspector">CLOSE DIAGNOSTIC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Screen Modal -->
+  <div class="modal-backdrop" id="modal-victory">
+    <div class="modal-card modal-victory-theme">
+      <div class="modal-header text-center">
+        <div class="victory-icon">🏆</div>
+        <span class="modal-badge badge-green">MISSION ACCOMPLISHED</span>
+        <h2>SEVEN DAYS SURVIVED!</h2>
+        <span class="modal-subtitle">Resupply Vessel 'Valkyrie-1' Has Safely Landed on Mars!</span>
+      </div>
+      <div class="modal-body text-center">
+        <p>Your strategic resource balancing, rigorous ECLSS maintenance, and emergency response leadership kept the entire crew alive and the outpost operational through the crisis.</p>
+        <div class="victory-score-box" id="victory-score">FINAL SCORE: 24,500 PTS</div>
+        <div class="medal-badge">🥇 GOLD ASTRONAUT WINGS AWARDED</div>
+      </div>
+      <div class="modal-footer text-center">
+        <button class="btn-primary" id="btn-victory-restart">PLAY AGAIN &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Defeat Screen Modal -->
+  <div class="modal-backdrop" id="modal-defeat">
+    <div class="modal-card modal-defeat-theme">
+      <div class="modal-header text-center">
+        <div class="defeat-icon">💀</div>
+        <span class="modal-badge badge-red">MISSION TERMINATED</span>
+        <h2 id="defeat-sol-display">OUTPOST FAILURE</h2>
+      </div>
+      <div class="modal-body">
+        <div class="defeat-box" id="defeat-reason-text">
+          Critical life-support failure. The crew was unable to survive until the supply shipment arrived.
+        </div>
+        <p class="defeat-hint">Tip: Monitor your power consumption during nighttime dust storms, keep MOXIE oxygen generation elevated, and clean solar panels before battery storage reaches zero.</p>
+      </div>
+      <div class="modal-footer text-center">
+        <button class="btn-danger" id="btn-defeat-restart">RETRY EXPEDITION &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load WebAssembly Bridge & Game Scripts -->
+  <script src="mars_outpost_wasm.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
