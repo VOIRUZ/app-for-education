@@ -26,7 +26,7 @@ Space-themed STEM content often oversimplifies the engineering trade-offs that d
 
 | Member | Role / Focus |
 |---|---|
-| **Viral Bodbe** | Team Member |
+| **Viral Bodbe** | Team Leader |
 | **Neel Tawre** | Team Member |
 | **Sanket Paradkar** | Team Member |
 | **Gauri Choudhary** | Team Member |
