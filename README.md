@@ -1,59 +1,84 @@
-# 🚀 Junior Astronaut Mission Trainer: MARS OUTPOST — SEVEN DAYS TO SURVIVE
+# 🌙 MOON H₂O: SEVEN DAYS ALONE
+### 3D Realistic Space Science, Astronaut Exploration & Lunar Survival Simulation
 
-[![NASA Space Apps Challenge 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-blue.svg)](https://www.spaceappschallenge.org/2026/)
-[![Challenge](https://img.shields.io/badge/Challenge-Junior%20Astronaut%20Mission%20Trainer-orange.svg)](https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/?tab=details)
-[![Team](https://img.shields.io/badge/Team-Base8-brightgreen.svg)](#-team-base8)
-
-An educational, narrative-driven 2D survival adventure game developed for the **NASA Space Apps Challenge 2026**.
+An immersive, event-driven 3D space adventure where you explore your spacecraft, operate real NASA life-support systems, solve critical daily emergencies, and manage transparent resource trade-offs.
 
 ---
 
-## 📌 Problem Overview
+## 🎮 What's New & Upgraded
 
-> **Challenge:** [Build a Junior Astronaut Mission Trainer](https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/?tab=details)  
-> **Event:** NASA Space Apps Challenge 2026  
-> **Difficulty Level:** Beginner / Youth & Intermediate  
-> **Subjects:** Games, Planets & Moons, Software, Space Exploration, Sun  
+1. **🧑‍🚀 Walkable 3D Astronaut Character:**
+   - Move freely inside the spacecraft cabin with **`[W][A][S][D]`** / **Arrow Keys** or **Click-to-Move** on the deck.
+   - Realistic kinematics: animated leg stride, knee bend, arm counter-swing, torso bobbing, and magnetic space boot footstep audio.
+   - Smooth 3rd-person orbital tracking camera that dynamically glides behind your astronaut.
 
-### The Challenge Statement
-Space-themed STEM content often oversimplifies the engineering trade-offs that define a real mission or presents them at a level too complex to hold a young learner's attention. Few tools make those trade-offs both tangible and fun.
+2. **🚀 Realistic 3D Spaceship & Station Consoles (No More Blocky Shapes!):**
+   - High-polygon 48-segment smooth curved cabin hull with authentic NASA quilted thermal insulation blankets.
+   - Heavy structural bulkhead arches with recessed LED rim lighting.
+   - Industrial non-slip grated floor deck with illuminated emergency guide strips.
+   - 6 Interactive station pods with real-time animated monitor displays (oscillating waveforms, gas pressure dials, radar sweep needles, and spectrometry charts).
+   - Circular Observation Cupola overlooking the cratered lunar surface and Earth.
 
-**The Goal:** Design and build an interactive game or application that lets students run a lunar or Martian outpost, balancing competing demands like life support, radiation shielding, power, and food production, so they experience firsthand the decisions that determine whether a mission fails or succeeds.
+3. **🚨 Event-Driven Gameplay (More Action, Drastically Reduced Dialogues):**
+   - No more clicking through walls of text!
+   - Each Sol triggers an immediate high-stakes **Emergency / Mission Event** with sliding alarm banners, klaxons, and pulsing station floor beacons.
+   - Walk your astronaut to the target station, resolve the incident through hands-on science mini-games, and make critical decisions.
+
+4. **⚖️ Transparent Trade-Offs (Cost vs Advantage Breakdown):**
+   - Every single option across all 7 days explicitly shows:
+     - **💎 ADVANTAGE / GAIN:** What facility or resource benefit you receive.
+     - **⚠️ COST / LOSS YOU BEAR:** The exact sacrifice in water, power, oxygen, or comfort.
+     - **🔔 REMINDER:** Operational caution about future consequences.
+     - Color-coded resource delta pills showing immediate numerical impacts.
+
+5. **🧑‍🚀 Realistic Astronaut Vector Avatars:**
+   - **Commander Frisk:** White aerospace exploration helmet, curved gold/cyan visor with holographic HUD overlay, neck seal ring, and oxygen valves.
+   - **Specialist Asriel:** Rugged polar lunar EVA helmet, gold sun visor reflecting crater rims, exterior floodlight, and high-gain comms antenna.
+   - **CAPCOM Flight Director:** NASA headset with boom mic, tactical monitor reflection glasses, and flight vest.
+
+6. **✍️ Flawless Typography & Spacing:**
+   - Typewriter engine revamped with preserved spacing tokens—words appear instantly with clean, legible spacing and zero text crumbling.
 
 ---
 
-## 🎮 Game Feature: Mars Outpost — Seven Days to Survive
+## 🕹️ Controls
 
-### 📖 The Story
-Stationed at **Ares Outpost Alpha**, your small crew is awaiting a scheduled supply shipment from Earth. However, an orbital trajectory error delays the cargo lander *Caelum-4* by **seven sols**. 
-
-With finite reserves and unexpected Martian environmental hazards, you must keep Commander Maya Chen, Lead Engineer Liam Brooks, Astrobiologist Dr. Samira Morales, and yourself alive until relief arrives.
-
-### 🎨 Art Direction & Design Philosophy
-- **Story-First, Accessible Presentation:** Inspired by the approachable, choice-driven storytelling of *The Henry Stickmin Collection* and indie narrative adventures.
-- **Human Connection:** Clean illustrated environments with warm character interactions rather than sterile, complicated sci-fi dashboards.
-- **Zero WASM:** 100% native HTML5 Canvas, modern CSS, ES Modules, and Web Audio API running in any modern web browser.
-
-### 🧪 Educational NASA/CSA Concepts Integrated
-1. **MOXIE (Mars Oxygen ISRU):** Splitting Martian atmospheric CO2 into breathable O2 using solid oxide electrolysis at ~800°C.
-2. **Sabatier Water Recovery:** Closed-loop ECLSS catalytic recycling of humidity, sweat, and urine.
-3. **Regolith Agriculture:** Treating perchlorates in Martian soil, composting, and hydroponic LED spectra.
-4. **Dust Storm Attenuation:** Electrostatic dust adhesion on solar arrays and cleaning mechanisms.
-5. **Solar Particle Events (SPE):** Subterranean regolith bunkers and water-jacket radiation storm shelters.
-6. **Circadian Rhythm on Mars:** Navigating the 24h 39m Sol and psychological confinement.
+| Action | Control |
+|---|---|
+| **Move Astronaut** | `[W][A][S][D]` or `[↑][←][↓][→]` |
+| **Click to Walk** | Left-click anywhere on the spaceship floor |
+| **Interact with Station** | Press `[E]` or Click station when in range |
+| **Advance Dialogue** | Left-click dialogue box or press `[Space]` / `[Enter]` |
+| **Open Research Database** | Click floating `📚 NASA RESEARCH DATABASE` button |
+| **Toggle Sound** | Click `🔊 AUDIO ON` in top HUD |
 
 ---
 
-## 🕹️ How to Play Locally
+## 📅 The 7-Day Event-Driven Campaign
 
-### Method 1: Python Launcher (Recommended)
-Launch the lightweight local server and auto-open your default browser:
+| Sol | Event Title | Station Target | Hands-On Science Event |
+|---|---|---|---|
+| **Sol 1** | **The Oxygen Leak** | Oxygen Generator | Electrolysis water-splitting reaction ($2\text{H}_2\text{O} \rightarrow 2\text{H}_2 + \text{O}_2$) |
+| **Sol 2** | **Solar Array Brownout** | Power Grid | Rebalance power draw of heaters & life support against damaged solar bus |
+| **Sol 3** | **Water Recovery Failure** | Water Recycler | Assemble 3-stage ECLSS mesh, activated carbon, and reverse osmosis filter |
+| **Sol 4** | **Telemetry Signal Drift** | Comms Terminal | Tune parabolic dish azimuth to clear cosmic static and lock carrier signal |
+| **Sol 5** | **Toxic CO₂ Surge** | Science Workbench | Cycle molecular zeolite desiccant beds to flush toxic carbon dioxide |
+| **Sol 6** | **Point of No Return** | Power Grid | Ignite emergency catalytic hydrogen fuel cell for power and water burst |
+| **Sol 7** | **The Rescue & Choice** | Cupola Airlock | Dock rover cart and decide humanity's path: **Return to Earth** vs **Continue Moon Research** |
+
+---
+
+## 🚀 How to Play Locally
+
+### Option 1: One-Click Python Launcher
+Open PowerShell or Command Prompt in this folder and run:
 ```bash
 python run_game.py
 ```
+*This boots the local mission server at `http://localhost:8085` and automatically opens your default browser!*
 
-### Method 2: Direct Browser Launch
-Open `index.html` directly in Google Chrome, Microsoft Edge, Mozilla Firefox, or Safari.
+### Option 2: Direct Browser Launch
+Open `index.html` directly in Google Chrome, Microsoft Edge, Brave, or Firefox.
 
 ---
 
@@ -66,6 +91,13 @@ Open `index.html` directly in Google Chrome, Microsoft Edge, Mozilla Firefox, or
 | **Sanket Paradkar** | Team Member |
 | **Gauri Choudhary** | Team Member |
 | **Dharti Charpe** | Team Member |
+
+---
+
+## 🎨 Technology Highlights
+- **100% Native WebGL & Three.js r128:** Full 3D rendering with custom procedural textures, soft shadows, and dynamic canvas monitor maps.
+- **Procedural Web Audio API:** Zero external audio files—pure mathematical sound synthesis for magnetic boots, alarms, radio squelch, laser spectrometers, and hums.
+- **Zero WASM / Zero Build Tools:** Pure standards-compliant web technologies that run instantly in any modern browser.
 
 ---
 

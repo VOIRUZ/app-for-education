@@ -3,212 +3,246 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mars Outpost: Seven Days to Survive</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Moon H₂O: Seven Days Alone — 3D Space Survival Adventure</title>
+  <!-- Google Fonts: Orbitron (Sci-Fi Display) & Nunito (Clean, Legible Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Three.js r128 Library (Universal CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div id="game-container">
-    <!-- Main 2D Illustrated Canvas Viewport -->
-    <div id="canvas-container">
-      <canvas id="gameCanvas"></canvas>
-    </div>
+  <div id="app-container">
+    <!-- 3D Three.js WebGL Viewport -->
+    <div id="viewport-3d"></div>
+    <div class="tactical-grid-overlay"></div>
 
-    <!-- Top Status Bar (Minimal, Friendly, Story First) -->
-    <header id="top-hud">
+    <!-- Unified Slim Upper Flight Bar (All Stats Consolidated at the Top) -->
+    <header id="top-hud" class="hidden">
+      <!-- Left: Sol Badge -->
       <div class="hud-sol-badge">
-        <span id="hud-sol" class="hud-sol-title">SOL 1 / 7</span>
-        <span id="hud-days-left" class="hud-sol-sub">6 SOLS REMAINING</span>
+        <span id="hud-sol-title" class="hud-sol-title">SOL 1 / 7</span>
+        <span id="hud-sol-sub" class="hud-sol-sub">6 SOLS REMAINING</span>
       </div>
 
-      <div class="resource-chips-row">
-        <div class="resource-chip" title="Oxygen (MOXIE Electrolysis Loop)">
-          <span class="icon">💨</span>
-          <span>O2:</span>
-          <span id="hud-o2" class="val">88%</span>
+      <!-- Center: All 5 Stats in a Sleek, Streamlined Row with Micro-Gauges -->
+      <div class="hud-stats-group">
+        <div class="stat-item" title="Oxygen (O₂)">
+          <span class="stat-icon">💨</span>
+          <span class="stat-name">O₂</span>
+          <span id="val-o2" class="stat-val" style="color: var(--accent-cyan);">82%</span>
+          <div class="stat-track"><div id="bar-o2" class="stat-fill" style="width: 82%; background: var(--accent-cyan);"></div></div>
         </div>
-        <div class="resource-chip" title="Water (Sabatier Condensation Loop)">
-          <span class="icon">💧</span>
-          <span>H2O:</span>
-          <span id="hud-h2o" class="val">82%</span>
+        <div class="stat-item" title="Drinking & Machine Water (H₂O)">
+          <span class="stat-icon">💧</span>
+          <span class="stat-name">H₂O</span>
+          <span id="val-h2o" class="stat-val" style="color: var(--accent-blue);">88%</span>
+          <div class="stat-track"><div id="bar-h2o" class="stat-fill" style="width: 88%; background: var(--accent-blue);"></div></div>
         </div>
-        <div class="resource-chip" title="Food (Hydroponics & Rations)">
-          <span class="icon">🥫</span>
-          <span>FOOD:</span>
-          <span id="hud-food" class="val">90%</span>
+        <div class="stat-item" title="Electrical Battery Power">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-name">PWR</span>
+          <span id="val-pwr" class="stat-val" style="color: var(--accent-gold);">92%</span>
+          <div class="stat-track"><div id="bar-pwr" class="stat-fill" style="width: 92%; background: var(--accent-gold);"></div></div>
         </div>
-        <div class="resource-chip" title="Electricity (Solar Arrays & Batteries)">
-          <span class="icon">⚡</span>
-          <span>PWR:</span>
-          <span id="hud-power" class="val">95%</span>
+        <div class="stat-item" title="Food Rations">
+          <span class="stat-icon">🥫</span>
+          <span class="stat-name">FOOD</span>
+          <span id="val-food" class="stat-val" style="color: var(--accent-green);">85%</span>
+          <div class="stat-track"><div id="bar-food" class="stat-fill" style="width: 85%; background: var(--accent-green);"></div></div>
         </div>
-        <div class="resource-chip" title="Crew Morale & Psychological Health">
-          <span class="icon">❤️</span>
-          <span>MORALE:</span>
-          <span id="hud-morale" class="val">94%</span>
+        <div class="stat-item" title="Toxic CO₂ Buildup (Keep below 1.5%)">
+          <span class="stat-icon">🍃</span>
+          <span class="stat-name">CO₂</span>
+          <span id="val-co2" class="stat-val" style="color: var(--accent-green);">0.45%</span>
+          <div class="stat-track"><div id="bar-co2" class="stat-fill" style="width: 30%; background: var(--accent-green);"></div></div>
         </div>
       </div>
 
-      <button id="btn-audio-toggle">🔊 AUDIO ON</button>
+      <!-- Right: Compact Objective, Windshield Look Button, Audio Toggle -->
+      <div class="hud-right-actions">
+        <div id="hud-objective-chip" class="hud-obj-chip" title="Current Directive">
+          <span class="pulse-dot"></span>
+          <span id="hud-objective-text">OXYGEN GENERATOR</span>
+        </div>
+        <button id="btn-view-windshield" class="hud-btn" title="Look outside the rocket windshield at the Moon">🔭 LOOK OUTSIDE</button>
+        <button id="btn-audio-toggle" class="hud-btn icon-btn" title="Toggle Sound">🔊</button>
+      </div>
     </header>
 
-    <!-- Bottom Navigation Dock & Room Hotspots -->
-    <footer id="bottom-dock">
-      <!-- Hotspots Bar (Contextual room items & conversations) -->
-      <div id="hotspots-container"></div>
-
-      <!-- Room Navigation Bar -->
-      <nav id="room-nav" class="hidden">
-        <button class="room-btn active" data-room="command">📡 Command Hub</button>
-        <button class="room-btn" data-room="common">☕ Common Quarters</button>
-        <button class="room-btn" data-room="greenhouse">🌿 Hydroponics</button>
-        <button class="room-btn" data-room="lifesupport">⚙️ Life Support</button>
-        <button class="room-btn" data-room="exterior">🚀 Mars Surface</button>
-      </nav>
-
-      <!-- Action: Trigger the Sol's Critical Emergency -->
-      <button id="btn-proceed-incident" class="hidden">⚠️ ADVANCE TO TODAY'S INCIDENT</button>
-    </footer>
-
-    <!-- Interactive Narrative Dialogue Box (Illustrated Character Portraits) -->
-    <div id="dialogue-box" class="hidden">
-      <div id="dialogue-portrait"></div>
-      <div id="dialogue-content">
-        <div id="dialogue-header">
-          <span id="dialogue-speaker">Commander Maya Chen</span>
-          <span id="dialogue-role">[CMD]</span>
-        </div>
-        <div id="dialogue-text">Initializing outpost communications...</div>
-        <div id="dialogue-indicator" class="hidden">CLICK TO CONTINUE ▼</div>
+    <!-- Critical Event Notification Toast (Corner Slide-in) -->
+    <div id="critical-toast" class="hidden">
+      <div class="toast-header">
+        <span class="toast-alert-badge"><span class="alert-icon">⚠️</span> CRITICAL ALERT</span>
+        <button id="btn-close-toast" class="btn-toast-close">✕</button>
+      </div>
+      <div id="toast-title" class="toast-title">OXYGEN PRESSURE LEAK</div>
+      <div id="toast-desc" class="toast-desc">Pressure venting! Move astronaut to Oxygen Generator on left wall.</div>
+      <div class="toast-footer">
+        <button id="btn-toast-act" class="btn-toast-act">INVESTIGATE [E] ▶</button>
       </div>
     </div>
 
-    <!-- Henry Stickmin-Inspired Choice Panel (Big Illustrated Decision Cards) -->
+    <!-- Cockpit Windshield Look-Out Panoramic Overlay -->
+    <div id="windshield-overlay" class="hidden">
+      <div class="windshield-header">
+        <span class="windshield-badge">🔭 COCKPIT WINDSHIELD // LUNAR SOUTH POLE VISTA</span>
+        <span class="windshield-hint">Drag Mouse to Look Around • Scroll to Zoom</span>
+        <button id="btn-exit-windshield" class="btn-exit-windshield">RETURN TO CABIN [ESC] 🚶</button>
+      </div>
+      <div class="windshield-reticle"></div>
+      <div class="windshield-callouts">
+        <div class="callout-tag tag-rover" style="left: 28%; top: 56%;">
+          <span class="callout-dot green"></span>
+          <span class="callout-label">ASRIEL'S ROVER EXPEDITION (5 KM OUT)</span>
+        </div>
+        <div class="callout-tag tag-crash" style="right: 24%; top: 48%;">
+          <span class="callout-dot amber"></span>
+          <span class="callout-label">CRASHED RESOURCE MODULE (35 KM AT RIM)</span>
+        </div>
+        <div class="callout-tag tag-earth" style="left: 18%; top: 24%;">
+          <span class="callout-dot blue"></span>
+          <span class="callout-label">PLANET EARTH (384,400 KM)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact On-Screen Controls Hint Pill -->
+    <div id="controls-guide" class="hidden">
+      <span>🖱️ <strong>Drag Mouse</strong> to Look Around • <strong>WASD / Click</strong> to Walk • <strong>[E]</strong> Interact</span>
+    </div>
+
+    <!-- Dynamic Station Proximity Prompt -->
+    <div id="station-prompt" class="hidden">
+      <span class="prompt-key">E</span>
+      <span class="prompt-text">ACCESS <span id="prompt-station-name">STATION</span></span>
+    </div>
+
+    <!-- Stylized Astronaut Dialogue Box -->
+    <div id="dialogue-box" class="hidden">
+      <div id="dialogue-avatar"></div>
+      <div id="dialogue-content">
+        <div id="dialogue-header">
+          <span id="dialogue-speaker">Frisk Amberheart</span>
+          <span id="dialogue-role">[COMMANDER ASTRONAUT]</span>
+        </div>
+        <div id="dialogue-text">Initializing spacecraft telemetry...</div>
+        <div id="dialogue-indicator" class="hidden">CLICK OR SPACE TO CONTINUE ▼</div>
+      </div>
+    </div>
+
+    <!-- Transparent Trade-off Decision Panel (Cost vs Advantage Breakdown) -->
     <div id="decision-panel" class="hidden">
       <div class="decision-header">
-        <h2 id="decision-title">CRITICAL INCIDENT</h2>
-        <p id="decision-desc">The situation demands immediate action. Consider your crew and resources carefully.</p>
+        <div class="decision-badge">MISSION COMMAND DIRECTIVE</div>
+        <h2 id="decision-prompt">CRITICAL DECISION</h2>
+        <p id="decision-sub">Review the result summary: Green Up-Arrows (▲) show gains, Red Down-Arrows (▼) show losses.</p>
       </div>
       <div id="decision-cards"></div>
     </div>
 
-    <!-- Situation Report Modal (Morning Sol Briefing) -->
-    <div id="report-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <h2 id="report-title">SOL 1 BRIEFING</h2>
-        <div id="report-sub" class="modal-subtitle">7 Sols to Caelum-4 Arrival</div>
+    <!-- Among Us Style Tactical Task Modal -->
+    <div id="task-modal" class="modal-overlay hidden">
+      <div class="task-window">
+        <div class="task-titlebar">
+          <div class="task-title-left">
+            <span class="task-station-icon" id="task-station-icon">⚡</span>
+            <span class="task-title-text" id="task-title-text">ELECTRICAL WIRING // OXYGEN GENERATOR</span>
+          </div>
+          <button id="btn-skip-task" class="btn-skip-task" title="Skip mini-game and proceed to options">SKIP TASK [▶]</button>
+        </div>
+        <div class="task-instruction" id="task-instruction">Connect matching colored wires from left to right</div>
         
-        <div class="modal-content-box">
-          <div><strong>Environmental Advisory:</strong></div>
-          <div id="report-weather" style="margin-top: 4px; color: #94a3b8;">Clear skies. Ambient temp: -62°C.</div>
+        <div class="task-canvas-area" id="task-canvas-area">
+          <!-- Dynamic interactive task content will be rendered here -->
+        </div>
 
-          <div style="margin-top: 14px;"><strong>Crew Vitals & Readiness:</strong></div>
-          <div id="report-crew-list" class="crew-status-grid"></div>
-
-          <div style="margin-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-            <strong>Daily Resource Allocations:</strong>
-            <div style="display: flex; gap: 10px; margin-top: 8px;">
-              <label style="font-size: 11px;">
-                Food Rations:
-                <select id="ration-select" style="background: #1e293b; color: #fff; border: 1px solid #334155; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">
-                  <option value="full">Full (+Morale)</option>
-                  <option value="standard" selected>Standard</option>
-                  <option value="half">Half (-Calories)</option>
-                  <option value="emergency">Emergency</option>
-                </select>
-              </label>
-
-              <label style="font-size: 11px;">
-                Power Grid:
-                <select id="power-select" style="background: #1e293b; color: #fff; border: 1px solid #334155; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">
-                  <option value="high_efficiency">High Efficiency</option>
-                  <option value="balanced" selected>Balanced</option>
-                  <option value="power_saver">Power Saver</option>
-                </select>
-              </label>
-
-              <label style="font-size: 11px;">
-                Water Recycling:
-                <select id="water-select" style="background: #1e293b; color: #fff; border: 1px solid #334155; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">
-                  <option value="heavy_filter">Heavy Filter</option>
-                  <option value="standard" selected>Standard</option>
-                  <option value="conserve">Conserve Loop</option>
-                </select>
-              </label>
-            </div>
+        <!-- Task Completed Victory Stamp Overlay -->
+        <div id="task-completed-stamp" class="hidden">
+          <div class="stamp-box">
+            <div class="stamp-icon">✓</div>
+            <div class="stamp-text">TASK COMPLETED</div>
           </div>
         </div>
-
-        <button id="report-proceed-btn" class="btn-primary">BEGIN DAY OPERATIONS</button>
       </div>
     </div>
 
-    <!-- Educational NASA/CSA Concept Popup -->
-    <div id="edu-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div id="edu-icon" class="edu-icon-banner">🚀</div>
-        <div id="edu-tag" class="edu-tag">NASA Technology</div>
-        <h2 id="edu-title">MOXIE Oxygen Generator</h2>
-        <div class="modal-content-box" id="edu-summary">
-          Explaining the real-world science of astronaut survival systems...
+    <!-- Interactive Scientific Experiment Modal Container -->
+    <div id="experiment-modal" class="modal-overlay hidden">
+      <div class="modal-container" id="experiment-content"></div>
+    </div>
+
+    <!-- Interactive Research Database Modal (10 Topics) -->
+    <div id="database-modal" class="modal-overlay hidden">
+      <div class="modal-container">
+        <div class="db-modal-header">
+          <h2>📚 NASA & SPACE SCIENCE RESEARCH DATABASE</h2>
+          <button id="btn-close-database" class="btn-close">✕</button>
         </div>
-        <button id="edu-close-btn" class="btn-primary">RETURN TO MISSION</button>
+        <div class="db-split-layout">
+          <div class="db-sidebar" id="db-topics-list"></div>
+          <div class="db-main-content" id="db-detail-card"></div>
+        </div>
       </div>
     </div>
 
-    <!-- End-of-Day Summary Modal -->
+    <!-- End-of-Day Report Modal -->
     <div id="end-day-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <h2 id="end-day-title">SOL COMPLETED</h2>
-        <div class="modal-subtitle">Night Log & Resource Balance</div>
-        <div class="modal-content-box">
-          <div id="end-day-summary">The crew rested in their quarters as the Martian night set in.</div>
-          <div id="end-day-diff" class="diff-chips-row"></div>
+      <div class="modal-container" style="max-width: 600px;">
+        <div class="sol-complete-badge">MISSION LOG UPDATE</div>
+        <h2 id="end-day-title" style="font-family: var(--font-display); font-size: 26px; color: #fff; margin-bottom: 12px;">SOL COMPLETED</h2>
+        <div id="end-day-summary"></div>
+        <div style="margin-top: 24px;">
+          <button id="btn-next-day" class="btn-primary">BEGIN NEXT SOL ▶</button>
         </div>
-        <button id="end-day-next-btn" class="btn-primary">ADVANCE TO NEXT SOL ▶</button>
       </div>
     </div>
 
-    <!-- Victory Screen (Arrival of Caelum-4) -->
-    <div id="victory-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="border-color: #00e676;">
-        <div style="font-size: 48px; margin-bottom: 8px;">🚀</div>
-        <h2 style="color: #00e676;">MISSION ACCOMPLISHED: CAELUM-4 HAS LANDED!</h2>
-        <div class="modal-subtitle">SEVEN DAYS SURVIVED ON MARS</div>
-        <div class="modal-content-box" style="text-align: center;">
-          <p style="margin-bottom: 12px;">
-            The thunderous roar of retro-rockets echoes across the red sands. Through the observation window, Commander Maya, Liam, and Samira watch the cargo ramps lower.
-          </p>
-          <p style="margin-bottom: 12px; color: #00e5ff;">
-            Fresh food crates, pressurized water bladders, zeolite scrubbers, and handwritten letters from families on Earth are secured inside Ares Outpost Alpha.
-          </p>
-          <p style="color: #ffd54f; font-weight: bold;">
-            "We made it home. Every single one of us."
-          </p>
-        </div>
-        <button id="btn-restart-game" class="btn-primary">PLAY CAMPAIGN AGAIN</button>
+    <!-- Epilogue / Victory Modal for Endings A & B -->
+    <div id="epilogue-modal" class="modal-overlay hidden">
+      <div class="modal-container" style="max-width: 740px;">
+        <div id="epilogue-badge" style="font-family: var(--font-display); font-size: 13px; font-weight: 900; letter-spacing: 2px; margin-bottom: 8px;"></div>
+        <h2 id="epilogue-title" style="font-family: var(--font-display); font-size: 26px; color: #fff; margin-bottom: 16px;"></h2>
+        <p id="epilogue-body" style="font-size: 15px; line-height: 1.7; color: #cfe3f5; margin-bottom: 26px; text-align: left; background: rgba(0,0,0,0.45); padding: 20px; border-radius: 8px; border: 1px solid rgba(0, 229, 255, 0.3);"></p>
+        <button id="btn-restart-campaign" class="btn-primary">PLAY MISSION AGAIN 🚀</button>
       </div>
     </div>
 
-    <!-- Defeat Screen (Life Support Failure) -->
-    <div id="defeat-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="border-color: #ff3d00;">
-        <div style="font-size: 48px; margin-bottom: 8px;">⚠️</div>
-        <h2 style="color: #ff3d00;">OUTPOST COMPROMISED</h2>
-        <div class="modal-subtitle">MISSION CRITICAL FAILURE</div>
-        <div class="modal-content-box">
-          <div id="defeat-reason" style="color: #ff8a80; font-weight: 600; margin-bottom: 12px;">
-            Critical life-support failure.
-          </div>
-          <p style="color: #94a3b8; font-size: 12px;">
-            The unforgiving Martian environment claims another mission. Survival on the red planet requires balancing human trust, engineering foresight, and calculated resource distribution.
-          </p>
+    <!-- Day Splash Title Screen -->
+    <div id="day-title-screen" class="hidden">
+      <div class="splash-badge">LUNAR SOUTH POLE OUTPOST</div>
+      <h1 id="day-title-main">SOL 1: THE OXYGEN CRISIS</h1>
+      <div id="day-title-sub">7 Days to Asriel's Return</div>
+    </div>
+
+    <!-- Main Menu Splash Modal -->
+    <div id="main-menu-modal" class="modal-overlay">
+      <div class="modal-container" style="max-width: 680px;">
+        <div class="menu-top-tag">REALISTIC 3D SPACE EXPLORATION & SURVIVAL</div>
+        <h1 class="menu-logo-title">🌙 MOON H₂O: SEVEN DAYS ALONE</h1>
+        <div class="menu-subtitle">Explore the Spacecraft, Solve Real Science Events & Survive the Lunar Night</div>
+        <div class="menu-lore-box">
+          <strong>MISSION DIRECTIVE:</strong><br>
+          You are Commander <strong>Frisk Amberheart</strong>. After an emergency landing near the Moon’s South Pole, tech specialist <strong>Asriel Shells</strong> has departed on a 7-day rover journey to retrieve the crashed water research cart.
+          <br><br>
+          <strong>YOUR OBJECTIVE:</strong>
+          Walk through the spacecraft cabin, look outside the rocket's panoramic windshield at the lunar craters, operate life support stations, and manage critical resource trade-offs until Asriel returns!
         </div>
-        <button id="btn-restart-defeat" class="btn-primary">RETRY MISSION</button>
+        <div class="menu-controls-preview">
+          <span>🎮 <strong>Controls:</strong> Drag mouse to look around • [W][A][S][D] / Click to walk • [E] to operate stations</span>
+        </div>
+        <button id="btn-start-game" class="btn-primary" style="font-size: 16px; padding: 14px 44px; margin-top: 18px;">LAUNCH MISSION 🚀</button>
       </div>
     </div>
   </div>
 
-  <!-- Main Game Script (Zero WASM, Standalone, runs directly on double-click or server) -->
-  <script src="game.bundle.js"></script>
+  <!-- Game Scripts (Sequential, Universal Execution, No Build Tools) -->
+  <script src="js/storyData.js"></script>
+  <script src="js/audioEngine.js"></script>
+  <script src="js/threeScene.js"></script>
+  <script src="js/amongUsTasks.js"></script>
+  <script src="js/experiments.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
