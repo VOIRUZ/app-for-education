@@ -47,8 +47,43 @@ During these seven days, the player must:
 
 *An educational space-survival adventure inspired by the Apollo 13 mission, designed for children aged 7–12.*
 
+
+
 An experienced astronaut guides the player by explaining different spacecraft equipment, their uses, and emergency procedures. Players must solve puzzles, complete engineering challenges, and make critical decisions where every choice has consequences.
 
 **Main Objective:** Bring all three astronauts safely back to Earth through smart engineering, teamwork, problem-solving, and resource management.
 
 Based on NASA's real Apollo 13 mission (April 11–17, 1970), adapted as an educational survival game for children aged 7–12.
+
+
+*making another update on storyline*
+
+Moon Survival Game – Complete Summary
+1. Game Story
+The game is about two astronauts stranded on the Moon after an accident.
+
+Opening Cutscene (No Gameplay):
+1. Two astronauts travel towards the Moon in a spacecraft.
+2. During takeoff, one module gets detached.
+3. On Day 2, an asteroid hits the Resource Module.
+4. The Resource Module crash-lands on the Moon.
+5. Both astronauts make an emergency landing.
+6. The astronauts discuss the situation.
+7. The second astronaut leaves to find the lost Resource Module.
+Main Gameplay:
+- The main player stays alone in the Navigation Module.
+- The helper astronaut takes seven days to find the Resource Module and return.
+- The player must survive for seven days by managing resources, researching equipment and solving problems.
+Day 7 – Helper Returns:
+- The main astronaut is weak and nearly unconscious due to low food and energy.
+- The player hears: Tik… Tik… Tik…
+- The helper returns with resources.
+- He gives the main astronaut emergency food and an energy drink.
+- Both astronauts recover, repair the spacecraft, refuel and prepare for departure.
+Final Cutscene:
+- Both astronauts enter the spacecraft.
+- Countdown: 3… 2… 1…
+- They take off from the Moon.
+- Earth appears through the spacecraft window.
+MISSION ACCOMPLISHED!
+“7 Days. One Mission. Two Astronauts. One Chance to Survive.”
