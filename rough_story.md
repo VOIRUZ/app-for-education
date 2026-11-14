@@ -22,6 +22,31 @@ The Moon landing mission is cancelled, and the astronauts' only goal is to retur
 
 The player takes the role of Mission Control, guiding the astronauts through this emergency. With limited oxygen, electricity, and water, the player must manage resources, repair damaged equipment, and find alternative solutions using the materials available inside the spacecraft.
 
+
+Story continues like this
+
+# **🚀 SEVEN DAYS IN SPACE – Game Story Summary**
+
+Two astronauts are travelling towards the Moon in a spacecraft consisting of three modules: a Navigation Module, a Resource Module, and a Landing Module.
+
+On the second day of their journey, an unexpected asteroid collision damages the spacecraft. During the emergency, one module gets detached, while the Resource Module crashes onto the Moon, leaving most of their essential supplies behind.
+
+The astronauts manage to reach a lunar research station and land on the Moon. To recover their lost resources, one astronaut goes on a mission to find the crashed Resource Module. His journey will take 3.5 days each way, leaving the other astronaut alone inside the Navigation Module for seven days.
+
+**The player controls the astronaut inside the Navigation Module**, whose mission is to survive until the other astronaut returns.
+
+During these seven days, the player must:
+
+- Manage limited oxygen, electricity, food and water.
+- Repair damaged spacecraft equipment.
+- Find alternative ways to generate and recycle resources.
+- Complete daily survival missions and engineering challenges.
+- Maintain communication with the astronaut exploring the Moon.
+
+**Main Objective:** Keep the Navigation Module operational and survive all seven days until the second astronaut returns with the recovered resources.
+
+*An educational space-survival adventure inspired by the Apollo 13 mission, designed for children aged 7–12.*
+
 An experienced astronaut guides the player by explaining different spacecraft equipment, their uses, and emergency procedures. Players must solve puzzles, complete engineering challenges, and make critical decisions where every choice has consequences.
 
 **Main Objective:** Bring all three astronauts safely back to Earth through smart engineering, teamwork, problem-solving, and resource management.
