@@ -2,500 +2,299 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MARS OUTPOST: SEVEN DAYS TO SURVIVE | Narrative Adventure Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CHRONO RESUPPLY: SEVEN DAYS ON THE CSS CHRYSALIS</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="game-body">
 
-  <!-- Floating Phase Banner Notification -->
-  <div id="phase-announcement" class="phase-banner"></div>
-
-  <!-- Toast Notification -->
-  <div id="floating-notif" class="floating-toast"></div>
-
-  <!-- Main Adventure Container -->
-  <div class="adventure-app">
+  <!-- ======================================================================== -->
+  <!-- FULLSCREEN GAME VIEWPORT -->
+  <!-- ======================================================================== -->
+  <div id="game-container" class="fullscreen-container">
     
-    <!-- Top Narrative HUD Bar -->
-    <header class="story-hud">
-      <div class="hud-left">
-        <div class="mission-logo">
-          <span class="logo-planet">🪐</span>
-          <div class="logo-text">
-            <span class="logo-sub">NASA CHRYSE PLANITIA BASE</span>
-            <h1 class="logo-main">MARS OUTPOST: <span class="highlight-gold">7 DAYS TO SURVIVE</span></h1>
-          </div>
+    <!-- 2D JRPG Canvas Viewport -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Screen Flash / Emergency Red Overlay -->
+    <div id="screen-fx-overlay" class="screen-fx-overlay"></div>
+
+    <!-- ====================================================================== -->
+    <!-- TOP HUD: DAY BANNER, OBJECTIVE, AND ROOM LOCATION -->
+    <!-- ====================================================================== -->
+    <header class="hud-top-bar">
+      <div class="hud-day-badge">
+        <span class="day-icon">☀️</span>
+        <div class="day-text-col">
+          <span id="hud-day-title" class="day-title">DAY 1 OF 7</span>
+          <span id="hud-chapter-title" class="chapter-title">THE IMPACT</span>
         </div>
       </div>
 
-      <!-- Center: Sol Tracker & Timeline -->
-      <div class="hud-center">
-        <div class="sol-tracker-card">
-          <div class="sol-info-row">
-            <span class="sol-badge" id="hud-sol-text">SOL 1 OF 7</span>
-            <span class="sol-eta" id="hud-eta-text">6 SOLS TO VALKYRIE</span>
-          </div>
-          <div class="sol-progress-track">
-            <div class="sol-progress-fill" id="hud-progress-fill" style="width: 14.2%;"></div>
-          </div>
-        </div>
+      <div class="hud-objective-pill">
+        <span class="obj-label">MISSION GOAL:</span>
+        <span id="hud-objective-text" class="obj-text">Talk with Captain Vance on the Command Bridge.</span>
       </div>
 
-      <!-- Right: Compact Resource Pills & Controls -->
-      <div class="hud-right">
-        <div class="compact-resources">
-          <div class="res-pill" id="card-res-o2" title="Oxygen Reserves">
-            <span class="res-icon">💨</span>
-            <div class="res-data">
-              <span class="res-label">O₂</span>
-              <strong class="res-val" id="hud-res-o2">60 kg</strong>
-            </div>
-          </div>
-          <div class="res-pill" id="card-res-water" title="Potable Water Reserves">
-            <span class="res-icon">💧</span>
-            <div class="res-data">
-              <span class="res-label">WATER</span>
-              <strong class="res-val" id="hud-res-water">80 L</strong>
-            </div>
-          </div>
-          <div class="res-pill" id="card-res-food" title="Food Rations">
-            <span class="res-icon">🥫</span>
-            <div class="res-data">
-              <span class="res-label">FOOD</span>
-              <strong class="res-val" id="hud-res-food">84 meals</strong>
-            </div>
-          </div>
-          <div class="res-pill" id="card-res-power" title="Electrical Battery Storage">
-            <span class="res-icon">⚡</span>
-            <div class="res-data">
-              <span class="res-label">POWER</span>
-              <strong class="res-val" id="hud-res-power">120 kWh</strong>
-            </div>
-          </div>
-          <div class="res-pill" id="card-res-hull" title="Habitat Structural Integrity">
-            <span class="res-icon">🛡️</span>
-            <div class="res-data">
-              <span class="res-label">HULL</span>
-              <strong class="res-val" id="hud-res-hull">100%</strong>
-            </div>
-          </div>
-          <div class="res-pill" id="card-res-morale" title="Crew Morale & Cohesion">
-            <span class="res-icon">❤️</span>
-            <div class="res-data">
-              <span class="res-label">MORALE</span>
-              <strong class="res-val" id="hud-res-morale">92%</strong>
-            </div>
-          </div>
+      <div class="hud-right-tools">
+        <div class="room-pill">
+          <span class="room-dot">●</span>
+          <span id="current-room-text">COMMAND BRIDGE</span>
         </div>
-
-        <div class="hud-quick-tools">
-          <button id="btn-field-manual" class="tool-btn" title="NASA Science Field Manual">
-            <span class="tool-icon">📖</span>
-            <span class="tool-text">Manual</span>
-          </button>
-          <button id="btn-sound-toggle" class="tool-btn" title="Toggle Audio">
-            <span id="sound-icon" class="tool-icon">🔊</span>
-          </button>
-          <button id="btn-restart" class="tool-btn btn-danger-pill" title="Restart Mission">
-            <span class="tool-icon">↺</span>
-          </button>
-        </div>
+        <button id="btn-sound" class="btn-circle" title="Toggle Sound">
+          <span id="sound-icon">🔊</span>
+        </button>
       </div>
     </header>
 
-    <!-- Room Selection Tabs -->
-    <nav class="room-nav-bar">
-      <div class="room-tabs-list">
-        <button class="room-tab-btn active" data-room="common">
-          <span class="tab-icon">☕</span>
-          <span class="tab-title">Common Hab</span>
-        </button>
-        <button class="room-tab-btn" data-room="life_support">
-          <span class="tab-icon">🔧</span>
-          <span class="tab-title">Life Support</span>
-        </button>
-        <button class="room-tab-btn" data-room="greenhouse">
-          <span class="tab-icon">🌱</span>
-          <span class="tab-title">Greenhouse</span>
-        </button>
-        <button class="room-tab-btn" data-room="bunks">
-          <span class="tab-icon">🛏️</span>
-          <span class="tab-title">Crew Quarters</span>
-        </button>
-        <button class="room-tab-btn" data-room="comms">
-          <span class="tab-icon">📡</span>
-          <span class="tab-title">Comm Relay</span>
-        </button>
-        <button class="room-tab-btn" data-room="airlock">
-          <span class="tab-icon">🌌</span>
-          <span class="tab-title">Surface Airlock</span>
-        </button>
-      </div>
-      <div class="room-banner-pill" id="room-banner-text">
-        ☕ Common Hab — The warm heart of the outpost.
-      </div>
-    </nav>
-
-    <!-- Main Stage: Illustrated 2D Adventure Viewport -->
-    <main class="viewport-stage">
-      <div class="canvas-wrapper">
-        <canvas id="room-canvas"></canvas>
-
-        <!-- Dynamic Visual Novel Dialogue Overlay -->
-        <div id="dialogue-overlay" class="dialogue-overlay">
-          <div id="dialogue-box" class="vn-dialogue-box">
-            <div class="vn-portrait-frame">
-              <img id="diag-portrait-img" alt="Character Portrait" class="vn-portrait-img" />
-            </div>
-            <div class="vn-content-col">
-              <div class="vn-header-row">
-                <span class="vn-speaker-name" id="diag-name">Commander Alex Cole</span>
-                <span class="vn-speaker-role" id="diag-role">Mission Commander</span>
-              </div>
-              <p class="vn-speech-text" id="diag-text">Loading communication link...</p>
-              <div class="vn-prompt-row">
-                <span class="vn-click-hint">Click anywhere on dialogue to continue ▶</span>
-              </div>
-            </div>
+    <!-- ====================================================================== -->
+    <!-- BOTTOM-RIGHT: STRICT MINIMAL HUD (CO2, O2, FOOD) & JRPG INTERACT -->
+    <!-- ====================================================================== -->
+    <div class="hud-bottom-right">
+      <!-- Contextual Action Button (Talk / Repair / Inspect) -->
+      <button id="btn-action" class="action-interact-btn disabled" title="Interact (Press E or Space)">
+        <div class="action-btn-inner">
+          <span id="action-icon" class="action-btn-icon">💬</span>
+          <div class="action-btn-text-col">
+            <span id="action-label" class="action-btn-label">TALK</span>
+            <span class="action-key-tag">KEY [E]</span>
           </div>
         </div>
-      </div>
-    </main>
+      </button>
 
-    <!-- Contextual Outpost Action Bar -->
-    <footer class="contextual-action-bar">
-      <div class="action-bar-left">
-        <span class="action-help-badge">OUTPOST COMMAND:</span>
-        <button id="act-talk" class="action-btn btn-talk">
-          <span class="btn-icon">💬</span>
-          <span>Talk with Crew</span>
-        </button>
-        <button id="act-report" class="action-btn btn-report">
-          <span class="btn-icon">📋</span>
-          <span>Sol Situation</span>
-        </button>
-        <button id="act-alloc" class="action-btn btn-alloc">
-          <span class="btn-icon">⚙️</span>
-          <span>Adjust Allocations</span>
-        </button>
-      </div>
-
-      <div class="action-bar-right">
-        <button id="act-ready-night" class="action-btn btn-primary-action">
-          <span class="btn-icon">🌙</span>
-          <span class="btn-primary-text">Ready for Evening</span>
-          <span class="btn-primary-sub">&rarr; Face Night Emergency</span>
-        </button>
-      </div>
-    </footer>
-  </div>
-
-  <!-- ======================================================================== -->
-  <!-- MODALS -->
-  <!-- ======================================================================== -->
-
-  <!-- Modal: Morning Situation Report -->
-  <div class="modal-backdrop" id="modal-situation">
-    <div class="modal-card situation-card">
-      <div class="modal-header">
-        <div class="header-icon-badge">☀️</div>
-        <div>
-          <span class="modal-sub">PHASE 2 &bull; MORNING SITUATION REPORT</span>
-          <h2 id="sit-title" class="modal-main-title">A Day of Red Dust</h2>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p id="sit-summary" class="sit-lead-text">
-          Earth Mission Control confirms the resupply freighter Valkyrie-1 has corrected its orbital burn.
-        </p>
-
-        <div class="env-telemetry-grid">
-          <div class="env-chip">
-            <span class="chip-icon">🌡️</span>
-            <div>
-              <span class="chip-label">SURFACE TEMP</span>
-              <strong id="sit-temp" class="chip-val">-60.0°C</strong>
-            </div>
+      <!-- STRICT MINIMAL SURVIVAL INDICATORS (CO2, OXYGEN, FOOD REMAINING) -->
+      <div class="jrpg-survival-card">
+        <!-- CO2 Level -->
+        <div class="meter-row" id="meter-co2-row" title="Carbon Dioxide Accumulation (Keep below 100%)">
+          <div class="meter-head">
+            <span class="meter-tag">⚠️ CO₂ LEVEL</span>
+            <span id="val-co2" class="meter-val">15%</span>
           </div>
-          <div class="env-chip">
-            <span class="chip-icon">🌪️</span>
-            <div>
-              <span class="chip-label">DUST OPACITY (TAU)</span>
-              <strong id="sit-tau" class="chip-val">Tau 0.35</strong>
-            </div>
-          </div>
-          <div class="env-chip">
-            <span class="chip-icon">☀️</span>
-            <div>
-              <span class="chip-label">SOLAR FLUX</span>
-              <strong id="sit-solar" class="chip-val">550 W/m²</strong>
-            </div>
-          </div>
-          <div class="env-chip">
-            <span class="chip-icon">🛡️</span>
-            <div>
-              <span class="chip-label">SURFACE RADIATION</span>
-              <strong id="sit-rad" class="chip-val">0.65 mSv/sol</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn-confirm" id="btn-sit-ack">
-          <span>Review Power Allocations &rarr;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Power Allocations -->
-  <div class="modal-backdrop" id="modal-allocations">
-    <div class="modal-card allocations-card">
-      <div class="modal-header">
-        <div class="header-icon-badge">⚡</div>
-        <div>
-          <span class="modal-sub">PHASE 3 &bull; RESOURCE MANAGEMENT</span>
-          <h2 class="modal-main-title">ECLSS Power Distribution</h2>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="modal-help-text">
-          Adjust electrical power allocation across life support systems. Balancing reserves prevents blackouts during nighttime or dust storms.
-        </p>
-
-        <div class="alloc-slider-row">
-          <div class="alloc-label-col">
-            <span class="alloc-title">💨 MOXIE &amp; Oxygen Scrubbing</span>
-            <span class="alloc-desc">Electrolyzes CO2 into breathable oxygen and powers LiOH scrubbers.</span>
-          </div>
-          <div class="alloc-input-col">
-            <input type="range" id="alloc-pwr-life" min="30" max="150" step="5" value="100" class="slider-range" />
-            <span class="alloc-val-badge" id="lbl-pwr-life">100%</span>
+          <div class="meter-track">
+            <div id="bar-co2" class="meter-fill fill-co2" style="width: 15%;"></div>
           </div>
         </div>
 
-        <div class="alloc-slider-row">
-          <div class="alloc-label-col">
-            <span class="alloc-title">💧 Water Distillation &amp; Sabatier</span>
-            <span class="alloc-desc">Recycles humidity, greywater, and carbon dioxide into clean drinking water.</span>
+        <!-- Oxygen Level -->
+        <div class="meter-row" id="meter-o2-row" title="Atmospheric Oxygen Level (Keep above 0%)">
+          <div class="meter-head">
+            <span class="meter-tag">💨 OXYGEN (O₂)</span>
+            <span id="val-o2" class="meter-val">92%</span>
           </div>
-          <div class="alloc-input-col">
-            <input type="range" id="alloc-pwr-water" min="30" max="150" step="5" value="100" class="slider-range" />
-            <span class="alloc-val-badge" id="lbl-pwr-water">100%</span>
+          <div class="meter-track">
+            <div id="bar-o2" class="meter-fill fill-o2" style="width: 92%;"></div>
           </div>
         </div>
 
-        <div class="alloc-slider-row">
-          <div class="alloc-label-col">
-            <span class="alloc-title">🌱 Aeroponic Grow Chambers</span>
-            <span class="alloc-desc">Powers full-spectrum LED grow lamps and nutrient mist pumps for crop yield.</span>
+        <!-- Food Remaining -->
+        <div class="meter-row" id="meter-food-row" title="Crew Food Reserves (Keep above 0%)">
+          <div class="meter-head">
+            <span class="meter-tag">🥫 FOOD REMAINING</span>
+            <span id="val-food" class="meter-val">88%</span>
           </div>
-          <div class="alloc-input-col">
-            <input type="range" id="alloc-pwr-aero" min="30" max="150" step="5" value="100" class="slider-range" />
-            <span class="alloc-val-badge" id="lbl-pwr-aero">100%</span>
+          <div class="meter-track">
+            <div id="bar-food" class="meter-fill fill-food" style="width: 88%;"></div>
           </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn-confirm" id="btn-save-alloc">
-          <span>Apply Power Distribution &rarr;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Phase 5 Emergency (Henry Stickmin-Style Choice Cards) -->
-  <div class="modal-backdrop" id="modal-emergency">
-    <div class="modal-card emergency-card">
-      <div class="modal-header">
-        <div class="header-icon-badge badge-alarm">🚨</div>
-        <div>
-          <span class="modal-sub badge-alarm-text">PHASE 5 &bull; EMERGENCY DECISION</span>
-          <h2 id="em-title" class="modal-main-title">Emergency Hazard Alert</h2>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p id="em-desc" class="emergency-desc-lead">
-          A sudden situation demands immediate decision-making from the crew.
-        </p>
-
-        <!-- 3-Choice Grid (Henry Stickmin Style) -->
-        <div class="choices-container" id="em-choices-container">
-          <!-- Dynamically populated choice cards -->
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal: Phase 6 End-of-Sol Debrief & Evening Journal -->
-  <div class="modal-backdrop" id="modal-debrief">
-    <div class="modal-card debrief-card">
-      <div class="modal-header">
-        <div class="header-icon-badge">📓</div>
-        <div>
-          <span class="modal-sub">PHASE 6 &bull; END-OF-DAY DEBRIEF</span>
-          <h2 id="deb-sol-title" class="modal-main-title">EVENING JOURNAL &bull; SOL 1</h2>
+    <!-- Controls Hint Overlay (Floating at bottom-left) -->
+    <div class="controls-pill">
+      <span>🎮 Move: <strong>WASD / Arrows / Click</strong> &bull; Interact: <strong>E / Space</strong></span>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-banner" class="toast-banner">
+      <span id="toast-icon">✨</span>
+      <span id="toast-text">Objective Updated!</span>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- CLASSIC JRPG DIALOGUE BOX (WITH EXPRESSIVE PORTRAITS) -->
+    <!-- ====================================================================== -->
+    <div id="jrpg-dialogue-box" class="jrpg-dialogue-overlay">
+      <div class="dialogue-frame" id="dialogue-frame">
+        <!-- Character Portrait Frame -->
+        <div class="portrait-container">
+          <div class="portrait-avatar" id="dialogue-portrait">
+            <!-- Rendered Chibi Face Avatar -->
+          </div>
+        </div>
+
+        <!-- Dialogue Content Column -->
+        <div class="dialogue-content-col">
+          <div class="speaker-header">
+            <span id="dialogue-speaker-name" class="speaker-name">Captain Vance</span>
+            <span id="dialogue-speaker-role" class="speaker-role">Ship Commander</span>
+          </div>
+          <p id="dialogue-text" class="speaker-text">Welcome aboard the CSS Chrysalis, Cadet Leo.</p>
+          <div class="dialogue-prompt">
+            <span class="prompt-hint">Click or press [E] to continue ▶</span>
+          </div>
         </div>
       </div>
-      <div class="modal-body">
-        <div class="journal-notebook-box">
-          <div class="notebook-spine"></div>
-          <div class="notebook-content">
-            <p id="deb-log-text" class="journal-quote">
-              "Another night falls across Chryse Planitia. Inside the habitat, the air is clean, the crew is resting, and we are one Sol closer to seeing Valkyrie-1 in the sky."
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- CINEMATIC OPENING CUTSCENE OVERLAY -->
+    <!-- ====================================================================== -->
+    <div id="cutscene-overlay" class="cutscene-overlay active">
+      <!-- Widescreen Cinematic Letterbox Bars -->
+      <div class="letterbox-bar bar-top">
+        <span class="cutscene-title-tag">MISSION PROLOGUE &bull; SEVEN DAYS UNTIL RESUPPLY</span>
+        <button id="btn-skip-cutscene" class="btn-skip-cutscene">SKIP INTRO &rarr;</button>
+      </div>
+
+      <!-- Center Cinematic Visual Stage -->
+      <div class="cutscene-stage" id="cutscene-stage">
+        <canvas id="cutscene-canvas"></canvas>
+      </div>
+
+      <div class="letterbox-bar bar-bottom">
+        <!-- Subtitles Dialogue Box -->
+        <div class="cutscene-subtitle-box" id="cutscene-sub-box">
+          <div class="sub-portrait" id="cutscene-portrait"></div>
+          <div class="sub-text-col">
+            <span id="cutscene-speaker" class="sub-speaker">CSS CHRYSALIS &bull; DEEP SPACE</span>
+            <p id="cutscene-sub-text" class="sub-body">The CSS Chrysalis glides quietly through the asteroid belt on a routine scientific mission...</p>
+            <span class="sub-advance-hint">Press [E] or Click to proceed ▶</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- DAY TRANSITION & EVENING REPORT MODAL -->
+    <!-- ====================================================================== -->
+    <div id="day-transition-modal" class="fullscreen-modal-backdrop">
+      <div class="jrpg-modal-card">
+        <div class="modal-card-header">
+          <span class="modal-icon-badge">📓</span>
+          <div>
+            <span class="modal-sub">EVENING JOURNAL &bull; END OF SOL</span>
+            <h2 id="day-deb-title" class="modal-main-title">DAY 1 SURVIVED</h2>
+          </div>
+        </div>
+        <div class="modal-card-body">
+          <div class="journal-quote-box">
+            <p id="day-deb-quote" class="journal-body">
+              "The air shaft has been temporarily sealed. Maya and Dr. Tariq are monitoring life-support fluctuations, but we made it through our first day. Six days until Valkyrie arrives."
             </p>
-            <span class="journal-sign">— Commander Alex Cole</span>
+            <span class="journal-author">— Cadet Leo's Mission Log</span>
           </div>
-        </div>
 
-        <div class="debrief-stats-title">SURVIVING RESERVES STATUS:</div>
-        <div class="debrief-res-grid">
-          <div class="deb-pill">
-            <span class="deb-icon">💨</span>
-            <span class="deb-name">OXYGEN:</span>
-            <strong id="deb-o2" class="deb-val">58.2 kg</strong>
-          </div>
-          <div class="deb-pill">
-            <span class="deb-icon">💧</span>
-            <span class="deb-name">WATER:</span>
-            <strong id="deb-water" class="deb-val">76.5 L</strong>
-          </div>
-          <div class="deb-pill">
-            <span class="deb-icon">🥫</span>
-            <span class="deb-name">FOOD:</span>
-            <strong id="deb-food" class="deb-val">80 meals</strong>
-          </div>
-          <div class="deb-pill">
-            <span class="deb-icon">⚡</span>
-            <span class="deb-name">POWER:</span>
-            <strong id="deb-pwr" class="deb-val">112.4 kWh</strong>
-          </div>
-          <div class="deb-pill">
-            <span class="deb-icon">❤️</span>
-            <span class="deb-name">MORALE:</span>
-            <strong id="deb-morale" class="deb-val">94%</strong>
+          <div class="debrief-status-title">OUTPOST STATUS:</div>
+          <div class="debrief-grid">
+            <div class="deb-item">
+              <span class="deb-icon">💨</span>
+              <span class="deb-label">OXYGEN:</span>
+              <strong id="deb-o2" class="deb-val">90%</strong>
+            </div>
+            <div class="deb-item">
+              <span class="deb-icon">⚠️</span>
+              <span class="deb-label">CO₂:</span>
+              <strong id="deb-co2" class="deb-val">18%</strong>
+            </div>
+            <div class="deb-item">
+              <span class="deb-icon">🥫</span>
+              <span class="deb-label">FOOD:</span>
+              <strong id="deb-food" class="deb-val">82%</strong>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn-confirm" id="btn-deb-next">
-          <span>Begin Next Sol &rarr;</span>
-        </button>
+        <div class="modal-card-footer">
+          <button id="btn-next-day" class="btn-jrpg-primary">
+            <span>BEGIN NEXT DAY &rarr;</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal: Hotspot Inspection & NASA Science -->
-  <div class="modal-backdrop" id="modal-hotspot">
-    <div class="modal-card hotspot-card">
-      <div class="modal-header">
-        <div class="header-icon-badge" id="hot-icon">🔍</div>
-        <div>
-          <span class="modal-sub">OUTPOST INSPECTION</span>
-          <h2 id="hot-title" class="modal-main-title">Subsystem Diagnostic</h2>
+    <!-- ====================================================================== -->
+    <!-- INTERACTIVE CREW TASK MODAL (MINIGAMES) -->
+    <!-- ====================================================================== -->
+    <div id="task-modal" class="fullscreen-modal-backdrop">
+      <div class="minigame-bezel-card">
+        <div class="minigame-header">
+          <div class="minigame-tag">
+            <span class="blink-dot">●</span>
+            <span id="minigame-room-tag">LIFE SUPPORT SUBSYSTEM</span>
+          </div>
+          <h2 id="minigame-title" class="minigame-title">Clean Air Shaft Filter</h2>
+          <button id="btn-close-task" class="btn-close-box" title="Close (Esc)">✕</button>
         </div>
-      </div>
-      <div class="modal-body">
-        <p id="hot-text" class="hotspot-lead-text">Diagnostic description.</p>
-        <div id="hot-science-box" class="science-callout">
-          <div class="science-tag">🔬 NASA / CSA REAL SCIENCE CONTEXT</div>
-          <p id="hot-science-text" class="science-body-text"></p>
+        <div id="minigame-viewport" class="minigame-viewport">
+          <!-- Dynamically populated minigame -->
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn-confirm" id="btn-hot-close">
-          <span>Return to Outpost</span>
-        </button>
+        <div class="minigame-footer">
+          <span id="minigame-instructions" class="instruction-text">Drag floating debris into the vacuum intake chute.</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal: NASA Science Field Manual -->
-  <div class="modal-backdrop" id="modal-manual">
-    <div class="modal-card manual-card">
-      <div class="modal-header">
-        <div class="header-icon-badge">📖</div>
-        <div>
-          <span class="modal-sub">NASA JUNIOR ASTRONAUT TRAINING</span>
-          <h2 class="modal-main-title">Chryse Planitia Field Manual</h2>
+    <!-- ====================================================================== -->
+    <!-- GRAND VICTORY ENDING MODAL (DAY 7 CLIMAX) -->
+    <!-- ====================================================================== -->
+    <div id="ending-cutscene-modal" class="fullscreen-modal-backdrop">
+      <div class="jrpg-modal-card victory-card">
+        <div class="modal-card-header text-center">
+          <div class="trophy-badge">🏆</div>
+          <span class="modal-sub text-gold">MISSION ACCOMPLISHED</span>
+          <h2 class="modal-main-title">THE RESUPPLY SHIP HAS ARRIVED!</h2>
         </div>
-      </div>
-      <div class="modal-body">
-        <div class="manual-articles-list" id="manual-container">
-          <!-- Populated from NASA_FIELD_MANUAL in narrative_data.js -->
+        <div class="modal-card-body">
+          <div class="ending-vista-container">
+            <canvas id="ending-vista-canvas"></canvas>
+          </div>
+          <p class="ending-narrative-text">
+            Seven days in deep space. Against micrometeorites, oxygen leaks, power brownouts, and dwindling rations, your crew stood united. Through the Observation Deck's panoramic glass, the golden thrusters of the <em>Valkyrie-1</em> illuminate the starry horizon. 
+          </p>
+          <div class="crew-celebration-banner">
+            <span>🎉 Captain Vance, Maya, Dr. Tariq, and Cadet Leo have survived!</span>
+          </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn-confirm" id="btn-close-manual">
-          <span>Close Field Manual</span>
-        </button>
+        <div class="modal-card-footer text-center">
+          <button id="btn-restart-game" class="btn-jrpg-primary btn-gold">
+            <span>PLAY EXPEDITION AGAIN &rarr;</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal: Victory Climax -->
-  <div class="modal-backdrop" id="modal-victory">
-    <div class="modal-card victory-card">
-      <div class="modal-header text-center">
-        <div class="header-icon-badge badge-trophy">🏆</div>
-        <div>
-          <span class="modal-sub victory-sub">MISSION ACCOMPLISHED</span>
-          <h2 class="modal-main-title victory-title">VALKYRIE-1 HAS LANDED!</h2>
+    <!-- ====================================================================== -->
+    <!-- MISSION FAILED / DEFEAT MODAL -->
+    <!-- ====================================================================== -->
+    <div id="defeat-modal" class="fullscreen-modal-backdrop">
+      <div class="jrpg-modal-card defeat-card">
+        <div class="modal-card-header text-center">
+          <div class="skull-badge">💀</div>
+          <span class="modal-sub text-red">LIFE SUPPORT COLLAPSE</span>
+          <h2 class="modal-main-title">MISSION TERMINATED</h2>
         </div>
-      </div>
-      <div class="modal-body">
-        <p id="vic-summary" class="victory-lead">
-          Seven Sols on Mars. Zero lost lives. The supply freighter Valkyrie-1 has touched down safely on Landing Pad Alpha!
-        </p>
-        <div class="victory-badge-box">
-          <div class="badge-ribbon">🥇 GOLD EXPLORATION MEDAL</div>
-          <p>Awarded by NASA Astronaut Selection Board for outstanding outpost leadership and closed-loop ECLSS management.</p>
+        <div class="modal-card-body">
+          <p id="defeat-reason-text" class="defeat-desc">
+            Atmospheric oxygen levels reached zero. The crew was unable to survive until the supply spacecraft arrived.
+          </p>
+          <div class="defeat-tip-box">
+            <strong>💡 Cadet's Survival Tip:</strong>
+            Prioritize fixing life-support filters early in each day, repair damaged wiring in Engineering, and rest in Crew Quarters when tasks are done!
+          </div>
         </div>
-      </div>
-      <div class="modal-footer text-center">
-        <button class="modal-btn-confirm" id="btn-vic-restart">
-          <span>Play Expedition Again &rarr;</span>
-        </button>
+        <div class="modal-card-footer text-center">
+          <button id="btn-retry-expedition" class="btn-jrpg-primary btn-red">
+            <span>RETRY FROM DAY 1 &rarr;</span>
+          </button>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <!-- Modal: Mission Defeat -->
-  <div class="modal-backdrop" id="modal-defeat">
-    <div class="modal-card defeat-card">
-      <div class="modal-header text-center">
-        <div class="header-icon-badge badge-skull">💀</div>
-        <div>
-          <span class="modal-sub defeat-sub">MISSION TERMINATED</span>
-          <h2 class="modal-main-title defeat-title">OUTPOST FAILURE</h2>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="defeat-lead">
-          A critical life-support shortage compromised outpost integrity before the supply ship arrived.
-        </p>
-        <div class="defeat-tip-box">
-          <strong>💡 Commander's Survival Tip:</strong>
-          Keep power allocations balanced during nighttime, avoid running batteries to 0%, and ensure water distillation filters are maintained.
-        </div>
-      </div>
-      <div class="modal-footer text-center">
-        <button class="modal-btn-confirm btn-retry" id="btn-def-restart">
-          <span>Retry Mission from Sol 1 &rarr;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Script Pipeline: Load WASM, Narrative DB, Character SVGs, Renderer, and Engine Controller -->
-  <script src="mars_outpost_wasm.js"></script>
-  <script src="narrative_data.js"></script>
-  <script src="character_portraits.js"></script>
-  <script src="room_renderer.js"></script>
-  <script src="game.js"></script>
+  <!-- Game Scripts -->
+  <script src="jrpg_game.js"></script>
 </body>
 </html>
