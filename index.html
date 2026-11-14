@@ -3,309 +3,319 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CHRONO RESUPPLY: SEVEN DAYS ON THE CSS CHRYSALIS</title>
-  <link rel="stylesheet" href="style.css">
+  <title>CSS CHRYSALIS 3D — Persona-Inspired Space Survival</title>
+  <link rel="stylesheet" href="style_3d.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 </head>
-<body class="game-body">
+<body class="p3-body">
 
   <!-- ======================================================================== -->
-  <!-- FULLSCREEN GAME VIEWPORT -->
+  <!-- 3D WEBGL VIEWPORT -->
   <!-- ======================================================================== -->
-  <div id="game-container" class="fullscreen-container">
-    
-    <!-- 2D JRPG Canvas Viewport -->
-    <canvas id="game-canvas"></canvas>
+  <div id="canvas-container" class="viewport-3d"></div>
 
-    <!-- Screen Flash / Emergency Red Overlay -->
-    <div id="screen-fx-overlay" class="screen-fx-overlay"></div>
+  <!-- Red Emergency Lighting & Screen Shake FX -->
+  <div id="alarm-overlay" class="alarm-overlay"></div>
 
-    <!-- ====================================================================== -->
-    <!-- TOP HUD: DAY BANNER, OBJECTIVE, AND ROOM LOCATION -->
-    <!-- ====================================================================== -->
-    <header class="hud-top-bar">
-      <div class="hud-day-badge">
-        <span class="day-icon">☀️</span>
-        <div class="day-text-col">
-          <span id="hud-day-title" class="day-title">DAY 1 OF 7</span>
-          <span id="hud-chapter-title" class="chapter-title">THE IMPACT</span>
-        </div>
+  <!-- ======================================================================== -->
+  <!-- STYLISH PERSONA 3-INSPIRED HUD OVERLAYS -->
+  <!-- ======================================================================== -->
+
+  <!-- Top-Left Mission Tracker & Day Badge -->
+  <div class="hud-top-left">
+    <div class="p3-day-badge">
+      <div class="day-num-box">
+        <span class="day-prefix">SOL</span>
+        <span id="hud-sol-num" class="day-big-num">01</span>
       </div>
-
-      <div class="hud-objective-pill">
-        <span class="obj-label">MISSION GOAL:</span>
-        <span id="hud-objective-text" class="obj-text">Speak with Captain Vance on the Command Bridge.</span>
+      <div class="day-info-box">
+        <span class="day-countdown">7 DAYS UNTIL RESUPPLY</span>
+        <h2 id="hud-mission-title" class="mission-heading">THE IMPACT</h2>
       </div>
+    </div>
 
-      <div class="hud-right-tools">
-        <div class="room-pill">
-          <span class="room-dot">●</span>
-          <span id="current-room-text">COMMAND BRIDGE</span>
-        </div>
-        <button id="btn-sound" class="btn-circle" title="Toggle Sound">
-          <span id="sound-icon">🔊</span>
-        </button>
-      </div>
-    </header>
+    <!-- Active Objective Card -->
+    <div class="p3-objective-card">
+      <div class="obj-tag">ACTIVE MISSION OBJECTIVE</div>
+      <p id="hud-objective-text" class="obj-desc">Report to Captain Vance on the Command Bridge.</p>
+    </div>
 
-    <!-- Collapsible Tasks Checklist (Top-Left) -->
-    <div class="hud-tasks-dropdown">
-      <div class="tasks-dropdown-header" id="btn-toggle-tasks">
-        <span class="tasks-title">📋 SHIP TASKS (<span id="task-completion-count">0/8</span>)</span>
-        <span id="tasks-chevron" class="tasks-chevron">▲</span>
+    <!-- Tasks Checklist Drawer -->
+    <div class="p3-tasks-drawer">
+      <div class="drawer-header" id="btn-toggle-tasks">
+        <span class="drawer-title">SYSTEM MAINTENANCE (<span id="task-completed-ratio">0/8</span>)</span>
+        <span id="tasks-chevron" class="drawer-chevron">▼</span>
       </div>
-      <ul class="tasks-checklist" id="tasks-checklist-list">
-        <!-- Dynamically populated with all accessible ship tasks -->
+      <ul class="drawer-list" id="task-checklist-list">
+        <!-- Injected dynamically -->
       </ul>
     </div>
-
-    <!-- ====================================================================== -->
-    <!-- BOTTOM-RIGHT: STRICT MINIMAL HUD (CO2, O2, FOOD) & JRPG INTERACT -->
-    <!-- ====================================================================== -->
-    <div class="hud-bottom-right">
-      <!-- Contextual Action Button (Talk / Repair / Inspect) -->
-      <button id="btn-action" class="action-interact-btn disabled" title="Interact (Press E or Space)">
-        <div class="action-btn-inner">
-          <span id="action-icon" class="action-btn-icon">💬</span>
-          <div class="action-btn-text-col">
-            <span id="action-label" class="action-btn-label">TALK</span>
-            <span class="action-key-tag">KEY [E]</span>
-          </div>
-        </div>
-      </button>
-
-      <!-- STRICT MINIMAL SURVIVAL INDICATORS (CO2, OXYGEN, FOOD REMAINING) -->
-      <div class="jrpg-survival-card">
-        <!-- CO2 Level -->
-        <div class="meter-row" id="meter-co2-row" title="Carbon Dioxide Accumulation (Keep below 100%)">
-          <div class="meter-head">
-            <span class="meter-tag">⚠️ CO₂ LEVEL</span>
-            <span id="val-co2" class="meter-val">15%</span>
-          </div>
-          <div class="meter-track">
-            <div id="bar-co2" class="meter-fill fill-co2" style="width: 15%;"></div>
-          </div>
-        </div>
-
-        <!-- Oxygen Level -->
-        <div class="meter-row" id="meter-o2-row" title="Atmospheric Oxygen Level (Keep above 0%)">
-          <div class="meter-head">
-            <span class="meter-tag">💨 OXYGEN (O₂)</span>
-            <span id="val-o2" class="meter-val">92%</span>
-          </div>
-          <div class="meter-track">
-            <div id="bar-o2" class="meter-fill fill-o2" style="width: 92%;"></div>
-          </div>
-        </div>
-
-        <!-- Food Remaining -->
-        <div class="meter-row" id="meter-food-row" title="Crew Food Reserves (Keep above 0%)">
-          <div class="meter-head">
-            <span class="meter-tag">🥫 FOOD REMAINING</span>
-            <span id="val-food" class="meter-val">88%</span>
-          </div>
-          <div class="meter-track">
-            <div id="bar-food" class="meter-fill fill-food" style="width: 88%;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controls Hint Overlay (Floating at bottom-left) -->
-    <div class="controls-pill">
-      <span>🎮 Move: <strong>WASD / Arrows / Click</strong> &bull; Interact: <strong>E / Space</strong></span>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast-banner" class="toast-banner">
-      <span id="toast-icon">✨</span>
-      <span id="toast-text">Objective Updated!</span>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- CLASSIC JRPG DIALOGUE BOX (WITH EXPRESSIVE PORTRAITS) -->
-    <!-- ====================================================================== -->
-    <div id="jrpg-dialogue-box" class="jrpg-dialogue-overlay">
-      <div class="dialogue-frame" id="dialogue-frame">
-        <!-- Character Portrait Frame -->
-        <div class="portrait-container">
-          <div class="portrait-avatar" id="dialogue-portrait">
-            <!-- Rendered Chibi Face Avatar -->
-          </div>
-        </div>
-
-        <!-- Dialogue Content Column -->
-        <div class="dialogue-content-col">
-          <div class="speaker-header">
-            <span id="dialogue-speaker-name" class="speaker-name">Captain Vance</span>
-            <span id="dialogue-speaker-role" class="speaker-role">Ship Commander</span>
-          </div>
-          <p id="dialogue-text" class="speaker-text">Welcome aboard the CSS Chrysalis, Cadet Leo.</p>
-          <div class="dialogue-prompt">
-            <span class="prompt-hint">Click anywhere or press [E] to continue ▶</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- CINEMATIC OPENING CUTSCENE OVERLAY -->
-    <!-- ====================================================================== -->
-    <div id="cutscene-overlay" class="cutscene-overlay active">
-      <!-- Widescreen Cinematic Letterbox Bars -->
-      <div class="letterbox-bar bar-top">
-        <span class="cutscene-title-tag">MISSION PROLOGUE &bull; SEVEN DAYS UNTIL RESUPPLY</span>
-        <button id="btn-skip-cutscene" class="btn-skip-cutscene">SKIP INTRO &rarr;</button>
-      </div>
-
-      <!-- Center Cinematic Visual Stage -->
-      <div class="cutscene-stage" id="cutscene-stage">
-        <canvas id="cutscene-canvas"></canvas>
-      </div>
-
-      <div class="letterbox-bar bar-bottom">
-        <!-- Subtitles Dialogue Box -->
-        <div class="cutscene-subtitle-box" id="cutscene-sub-box">
-          <div class="sub-portrait" id="cutscene-portrait"></div>
-          <div class="sub-text-col">
-            <span id="cutscene-speaker" class="sub-speaker">CSS CHRYSALIS &bull; DEEP SPACE</span>
-            <p id="cutscene-sub-text" class="sub-body">The CSS Chrysalis glides quietly through deep space on a scientific mission...</p>
-            <span class="sub-advance-hint">Press [E] or Click to proceed ▶</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- DAY TRANSITION & EVENING REPORT MODAL -->
-    <!-- ====================================================================== -->
-    <div id="day-transition-modal" class="fullscreen-modal-backdrop">
-      <div class="jrpg-modal-card">
-        <div class="modal-card-header">
-          <span class="modal-icon-badge">📓</span>
-          <div>
-            <span class="modal-sub">EVENING JOURNAL &bull; END OF SOL</span>
-            <h2 id="day-deb-title" class="modal-main-title">DAY 1 SURVIVED</h2>
-          </div>
-        </div>
-        <div class="modal-card-body">
-          <div class="journal-quote-box">
-            <p id="day-deb-quote" class="journal-body">
-              "The air shaft has been temporarily sealed. Maya and Dr. Tariq are monitoring life-support fluctuations, but we made it through our first day. Six days until Valkyrie arrives."
-            </p>
-            <span class="journal-author">— Cadet Leo's Mission Log</span>
-          </div>
-
-          <div class="debrief-status-title">OUTPOST STATUS:</div>
-          <div class="debrief-grid">
-            <div class="deb-item">
-              <span class="deb-icon">💨</span>
-              <span class="deb-label">OXYGEN:</span>
-              <strong id="deb-o2" class="deb-val">90%</strong>
-            </div>
-            <div class="deb-item">
-              <span class="deb-icon">⚠️</span>
-              <span class="deb-label">CO₂:</span>
-              <strong id="deb-co2" class="deb-val">18%</strong>
-            </div>
-            <div class="deb-item">
-              <span class="deb-icon">🥫</span>
-              <span class="deb-label">FOOD:</span>
-              <strong id="deb-food" class="deb-val">82%</strong>
-            </div>
-          </div>
-        </div>
-        <div class="modal-card-footer">
-          <button id="btn-next-day" class="btn-jrpg-primary">
-            <span>BEGIN NEXT DAY &rarr;</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- INTERACTIVE CREW TASK MODAL (MINIGAMES) -->
-    <!-- ====================================================================== -->
-    <div id="task-modal" class="fullscreen-modal-backdrop">
-      <div class="minigame-bezel-card">
-        <div class="minigame-header">
-          <div class="minigame-tag">
-            <span class="blink-dot">●</span>
-            <span id="minigame-room-tag">LIFE SUPPORT SUBSYSTEM</span>
-          </div>
-          <h2 id="minigame-title" class="minigame-title">Clean Air Shaft Filter</h2>
-          <button id="btn-close-task" class="btn-close-box" title="Close (Esc)">✕</button>
-        </div>
-        <div id="minigame-viewport" class="minigame-viewport">
-          <!-- Dynamically populated minigame -->
-        </div>
-        <div class="minigame-footer">
-          <span id="minigame-instructions" class="instruction-text">Drag floating debris into the vacuum intake chute.</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- GRAND VICTORY ENDING MODAL (DAY 7 CLIMAX) -->
-    <!-- ====================================================================== -->
-    <div id="ending-cutscene-modal" class="fullscreen-modal-backdrop">
-      <div class="jrpg-modal-card victory-card">
-        <div class="modal-card-header text-center">
-          <div class="trophy-badge">🏆</div>
-          <span class="modal-sub text-gold">MISSION ACCOMPLISHED</span>
-          <h2 class="modal-main-title">THE RESUPPLY SHIP HAS ARRIVED!</h2>
-        </div>
-        <div class="modal-card-body">
-          <div class="ending-vista-container">
-            <canvas id="ending-vista-canvas"></canvas>
-          </div>
-          <p class="ending-narrative-text">
-            Seven days in deep space. Against micrometeorites, oxygen leaks, power brownouts, and dwindling rations, your crew stood united. Through the Observation Deck's panoramic glass, the golden thrusters of the <em>Valkyrie-1</em> illuminate the starry horizon. 
-          </p>
-          <div class="crew-celebration-banner">
-            <span>🎉 Captain Vance, Maya, Dr. Tariq, and Cadet Leo have survived!</span>
-          </div>
-        </div>
-        <div class="modal-card-footer text-center">
-          <button id="btn-restart-game" class="btn-jrpg-primary btn-gold">
-            <span>PLAY EXPEDITION AGAIN &rarr;</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====================================================================== -->
-    <!-- MISSION FAILED / DEFEAT MODAL -->
-    <!-- ====================================================================== -->
-    <div id="defeat-modal" class="fullscreen-modal-backdrop">
-      <div class="jrpg-modal-card defeat-card">
-        <div class="modal-card-header text-center">
-          <div class="skull-badge">💀</div>
-          <span class="modal-sub text-red">LIFE SUPPORT COLLAPSE</span>
-          <h2 class="modal-main-title">MISSION TERMINATED</h2>
-        </div>
-        <div class="modal-card-body">
-          <p id="defeat-reason-text" class="defeat-desc">
-            Atmospheric oxygen levels reached zero. The crew was unable to survive until the supply spacecraft arrived.
-          </p>
-          <div class="defeat-tip-box">
-            <strong>💡 Cadet's Survival Tip:</strong>
-            Prioritize fixing life-support filters early in each day, repair damaged wiring in Engineering, and rest in Crew Quarters when tasks are done!
-          </div>
-        </div>
-        <div class="modal-card-footer text-center">
-          <button id="btn-retry-expedition" class="btn-jrpg-primary btn-red">
-            <span>RETRY FROM DAY 1 &rarr;</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- Game Scripts -->
-  <script src="jrpg_game.js"></script>
+  <!-- Top-Right Room Location & Controls -->
+  <div class="hud-top-right">
+    <div class="p3-room-badge">
+      <span class="room-icon">◈</span>
+      <span id="hud-room-name" class="room-text">COMMAND BRIDGE</span>
+    </div>
+    <button id="btn-sound" class="p3-round-btn" title="Toggle Audio">
+      <span id="sound-icon">🔊</span>
+    </button>
+  </div>
+
+  <!-- Contextual 3D Interaction Prompt -->
+  <div id="interaction-prompt" class="interaction-prompt-3d">
+    <div class="prompt-key">E</div>
+    <div class="prompt-text-group">
+      <span id="prompt-action-type" class="prompt-action">INTERACT</span>
+      <span id="prompt-target-name" class="prompt-target">Captain Vance</span>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- BOTTOM-RIGHT: STRICT MINIMAL SURVIVAL HUD (PERSONA 3 STYLED) -->
+  <!-- ======================================================================== -->
+  <div class="hud-bottom-right">
+    <!-- Contextual Action Button -->
+    <button id="btn-action-main" class="p3-action-btn disabled">
+      <div class="action-btn-slanted">
+        <span class="action-key-pill">[E]</span>
+        <span id="action-btn-text" class="action-btn-title">INTERACT</span>
+      </div>
+    </button>
+
+    <!-- Strict Minimal Survival Meters: Oxygen, CO2, Food Remaining -->
+    <div class="p3-survival-cluster">
+      <div class="p3-meter-row" id="meter-o2-row" title="Atmospheric Oxygen Level">
+        <div class="p3-meter-label-col">
+          <span class="p3-meter-name">OXYGEN (O₂)</span>
+          <span id="val-o2" class="p3-meter-pct">92%</span>
+        </div>
+        <div class="p3-meter-track">
+          <div id="bar-o2" class="p3-meter-fill fill-cyan" style="width: 92%;"></div>
+        </div>
+      </div>
+
+      <div class="p3-meter-row" id="meter-co2-row" title="Carbon Dioxide Toxicity">
+        <div class="p3-meter-label-col">
+          <span class="p3-meter-name">CO₂ ACCUMULATION</span>
+          <span id="val-co2" class="p3-meter-pct">15%</span>
+        </div>
+        <div class="p3-meter-track">
+          <div id="bar-co2" class="p3-meter-fill fill-crimson" style="width: 15%;"></div>
+        </div>
+      </div>
+
+      <div class="p3-meter-row" id="meter-food-row" title="Emergency Food Reserves">
+        <div class="p3-meter-label-col">
+          <span class="p3-meter-name">FOOD RESERVES</span>
+          <span id="val-food" class="p3-meter-pct">88%</span>
+        </div>
+        <div class="p3-meter-track">
+          <div id="bar-food" class="p3-meter-fill fill-amber" style="width: 88%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persona 3-Style Minimap (Bottom-Left) -->
+  <div class="p3-minimap-container" id="p3-minimap-box">
+    <div class="minimap-header">
+      <span class="minimap-dot">●</span>
+      <span id="minimap-room-title" class="minimap-title">COMMAND BRIDGE</span>
+    </div>
+    <div class="minimap-radar-frame">
+      <canvas id="minimap-canvas" width="160" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- Bottom-Left Navigation Controls Hint -->
+  <div class="hud-controls-hint">
+    <span>[W,A,S,D] Move &bull; [Shift] Sprint &bull; [Right Mouse Drag] Rotate Camera &bull; [Wheel] Zoom &bull; [E] Interact</span>
+  </div>
+
+  <!-- Notification Banner Toast -->
+  <div id="toast-banner" class="p3-toast">
+    <span class="toast-indicator">▶</span>
+    <span id="toast-text">System Restored</span>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- PERSONA 3-INSPIRED CINEMATIC DIALOGUE OVERLAY -->
+  <!-- ======================================================================== -->
+  <div id="p3-dialogue-overlay" class="p3-dialogue-overlay">
+    <div class="p3-dialogue-frame" id="dialogue-frame">
+      <!-- Angled Character Portrait Banner -->
+      <div class="p3-portrait-wrapper">
+        <div class="p3-portrait-box" id="dialogue-portrait">
+          <!-- Rendered Persona Style Avatar -->
+        </div>
+        <div class="p3-speaker-tag">
+          <span id="dialogue-speaker-name" class="p3-speaker-name">CAPTAIN VANCE</span>
+          <span id="dialogue-speaker-role" class="p3-speaker-role">COMMANDER</span>
+        </div>
+      </div>
+
+      <!-- Dialogue Text Box -->
+      <div class="p3-speech-box">
+        <p id="dialogue-text" class="p3-speech-body">
+          Cadet Leo. The asteroid impact tore open our lower air shaft. We have seven days until Valkyrie arrives.
+        </p>
+        <div class="p3-dialogue-advance">
+          <span class="advance-arrow">CLICK OR PRESS [E] TO ADVANCE ▶</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- 3D CINEMATIC OPENING CUTSCENE OVERLAY -->
+  <!-- ======================================================================== -->
+  <div id="cutscene-overlay" class="p3-cutscene-overlay active">
+    <!-- Top Widescreen Letterbox -->
+    <div class="letterbox bar-top">
+      <span class="letterbox-title">PROLOGUE &bull; SEVEN DAYS UNTIL RESUPPLY</span>
+      <button id="btn-skip-cutscene" class="p3-skip-btn">SKIP INTRO [ESC] &rarr;</button>
+    </div>
+
+    <!-- Center Cinematic Subtitles -->
+    <div class="letterbox bar-bottom">
+      <div class="p3-cutscene-sub-box" id="cutscene-sub-box">
+        <div class="sub-portrait-chip" id="cutscene-portrait"></div>
+        <div class="sub-content-col">
+          <span id="cutscene-speaker" class="sub-header">CSS CHRYSALIS &bull; DEEP SPACE</span>
+          <p id="cutscene-sub-text" class="sub-text">
+            Year 2026. Scientific research vessel CSS Chrysalis cruises on the Martian orbital approach...
+          </p>
+          <span class="sub-hint">Click or press [E] to continue ▶</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- 3D TERMINAL MINIGAME MODAL OVERLAY -->
+  <!-- ======================================================================== -->
+  <div id="task-modal" class="p3-modal-backdrop">
+    <div class="p3-terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-tag">
+          <span class="tag-dot">■</span>
+          <span id="minigame-room-tag">LIFE SUPPORT SUBSYSTEM</span>
+        </div>
+        <h2 id="minigame-title" class="terminal-title">AIR SHAFT PURGE</h2>
+        <button id="btn-close-task" class="terminal-close" title="Exit Terminal (Esc)">✕</button>
+      </div>
+
+      <div id="minigame-viewport" class="terminal-screen">
+        <!-- Interactive minigame stage -->
+      </div>
+
+      <div class="terminal-footer">
+        <span id="minigame-instructions" class="terminal-instructions">Complete system diagnostic.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- DAY TRANSITION & EVENING JOURNAL OVERLAY -->
+  <!-- ======================================================================== -->
+  <div id="day-transition-modal" class="p3-modal-backdrop">
+    <div class="p3-journal-card">
+      <div class="journal-header">
+        <div class="journal-icon">📓</div>
+        <div class="journal-title-col">
+          <span class="journal-sub">EVENING DEBRIEF</span>
+          <h2 id="day-deb-title" class="journal-main-title">SOL 01 COMPLETED</h2>
+        </div>
+      </div>
+
+      <div class="journal-body">
+        <p id="day-deb-quote" class="journal-quote">
+          "The air shaft has been temporarily sealed. Maya and Dr. Tariq are monitoring life-support fluctuations. Six days until Valkyrie arrives."
+        </p>
+        <span class="journal-author">— Cadet Leo's Log</span>
+
+        <div class="journal-stats-grid">
+          <div class="j-stat-chip">
+            <span class="j-label">OXYGEN</span>
+            <strong id="deb-o2" class="j-val text-cyan">90%</strong>
+          </div>
+          <div class="j-stat-chip">
+            <span class="j-label">CO₂</span>
+            <strong id="deb-co2" class="j-val text-crimson">18%</strong>
+          </div>
+          <div class="j-stat-chip">
+            <span class="j-label">FOOD</span>
+            <strong id="deb-food" class="j-val text-amber">82%</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="journal-footer">
+        <button id="btn-next-day" class="p3-primary-btn">
+          <span>AWAKEN TO NEXT SOL &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- VICTORY ENDING MODAL (DAY 7 CLIMAX) -->
+  <!-- ======================================================================== -->
+  <div id="ending-cutscene-modal" class="p3-modal-backdrop">
+    <div class="p3-journal-card victory-theme">
+      <div class="journal-header text-center">
+        <div class="trophy-icon">🏆</div>
+        <span class="journal-sub text-cyan">EXPEDITION SURVIVED</span>
+        <h2 class="journal-main-title">VALKYRIE-1 HAS ARRIVED!</h2>
+      </div>
+      <div class="journal-body">
+        <p class="victory-narrative">
+          Seven Sols of isolation. Punctured air shafts, power surges, and cosmic storms tested your resolve. Through the Command Bridge's panoramic viewport, the massive engines of the <em>Valkyrie-1</em> freighter flare into view, locking docking clamps to the CSS Chrysalis!
+        </p>
+        <div class="p3-celebration-pill">
+          <span>★ MISSION ACCOMPLISHED &bull; ALL CREW MEMBERS SURVIVED ★</span>
+        </div>
+      </div>
+      <div class="journal-footer text-center">
+        <button id="btn-restart-game" class="p3-primary-btn btn-cyan">
+          <span>PLAY 3D EXPEDITION AGAIN &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- DEFEAT MODAL -->
+  <!-- ======================================================================== -->
+  <div id="defeat-modal" class="p3-modal-backdrop">
+    <div class="p3-journal-card defeat-theme">
+      <div class="journal-header text-center">
+        <div class="skull-icon">💀</div>
+        <span class="journal-sub text-crimson">LIFE SUPPORT FAILURE</span>
+        <h2 class="journal-main-title">MISSION TERMINATED</h2>
+      </div>
+      <div class="journal-body">
+        <p id="defeat-reason-text" class="defeat-narrative">
+          Atmospheric oxygen depleted. The crew succumbed before the resupply freighter could arrive.
+        </p>
+        <div class="defeat-advice">
+          <strong>💡 Tactical Advice:</strong> Repair the air shaft and scrubbers early each day to keep CO₂ in check, and monitor your bottom-right survival indicators!
+        </div>
+      </div>
+      <div class="journal-footer text-center">
+        <button id="btn-retry-expedition" class="p3-primary-btn btn-crimson">
+          <span>RETRY FROM SOL 01 &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: Standalone Local Three.js and 3D Game Engine -->
+  <script src="three.min.js"></script>
+  <script src="game_3d.js"></script>
 </body>
 </html>
