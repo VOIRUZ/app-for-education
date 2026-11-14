@@ -36,7 +36,7 @@
 
       <div class="hud-objective-pill">
         <span class="obj-label">MISSION GOAL:</span>
-        <span id="hud-objective-text" class="obj-text">Talk with Captain Vance on the Command Bridge.</span>
+        <span id="hud-objective-text" class="obj-text">Speak with Captain Vance on the Command Bridge.</span>
       </div>
 
       <div class="hud-right-tools">
@@ -49,6 +49,17 @@
         </button>
       </div>
     </header>
+
+    <!-- Collapsible Tasks Checklist (Top-Left) -->
+    <div class="hud-tasks-dropdown">
+      <div class="tasks-dropdown-header" id="btn-toggle-tasks">
+        <span class="tasks-title">📋 SHIP TASKS (<span id="task-completion-count">0/8</span>)</span>
+        <span id="tasks-chevron" class="tasks-chevron">▲</span>
+      </div>
+      <ul class="tasks-checklist" id="tasks-checklist-list">
+        <!-- Dynamically populated with all accessible ship tasks -->
+      </ul>
+    </div>
 
     <!-- ====================================================================== -->
     <!-- BOTTOM-RIGHT: STRICT MINIMAL HUD (CO2, O2, FOOD) & JRPG INTERACT -->
@@ -133,7 +144,7 @@
           </div>
           <p id="dialogue-text" class="speaker-text">Welcome aboard the CSS Chrysalis, Cadet Leo.</p>
           <div class="dialogue-prompt">
-            <span class="prompt-hint">Click or press [E] to continue ▶</span>
+            <span class="prompt-hint">Click anywhere or press [E] to continue ▶</span>
           </div>
         </div>
       </div>
@@ -160,7 +171,7 @@
           <div class="sub-portrait" id="cutscene-portrait"></div>
           <div class="sub-text-col">
             <span id="cutscene-speaker" class="sub-speaker">CSS CHRYSALIS &bull; DEEP SPACE</span>
-            <p id="cutscene-sub-text" class="sub-body">The CSS Chrysalis glides quietly through the asteroid belt on a routine scientific mission...</p>
+            <p id="cutscene-sub-text" class="sub-body">The CSS Chrysalis glides quietly through deep space on a scientific mission...</p>
             <span class="sub-advance-hint">Press [E] or Click to proceed ▶</span>
           </div>
         </div>

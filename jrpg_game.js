@@ -3,14 +3,6 @@
  * CHRONO RESUPPLY: SEVEN DAYS ON THE CSS CHRYSALIS
  * 2D JRPG Space Adventure & Survival Simulator
  * ============================================================================
- * Features:
- * - Original cute chibi astronaut protagonist (Leo) with 4-direction animations
- * - Interconnected 9-room spaceship layout with grid-based collision & wall-sliding
- * - Full 7-Day narrative story campaign with opening cutscene and daily debriefs
- * - Interactive crew members (Captain Vance, Engineer Maya, Biologist Dr. Tariq)
- * - Classic JRPG visual novel dialogue boxes with expressive portraits & typewriter audio
- * - Strict minimal survival HUD (CO2, O2, Food Remaining) in bottom-right corner
- * ============================================================================
  */
 
 // ============================================================================
@@ -76,7 +68,6 @@ class JrpgSoundEngine {
     try {
       this.init();
       if (!this.ctx) return;
-      // Low boom
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'sawtooth';
@@ -146,27 +137,16 @@ const ROOM_DEFS = [
   { id: 'storage', name: 'STORAGE BAY', c1: 34, r1: 24, c2: 45, r2: 32, color: '#1b2230' }
 ];
 
-// Corridors connecting all rooms seamlessly
 const CORRIDOR_DEFS = [
-  // North-South: Bridge <-> Atrium
   { c1: 22, r1: 9, c2: 25, r2: 12 },
-  // North-South: Atrium <-> Engineering
   { c1: 22, r1: 21, c2: 25, r2: 24 },
-  // West-East: Quarters <-> Bridge
   { c1: 14, r1: 5, c2: 17, r2: 7 },
-  // West-East: Bridge <-> Comms
   { c1: 30, r1: 5, c2: 34, r2: 7 },
-  // West-East: Lab <-> Atrium
   { c1: 13, r1: 15, c2: 16, r2: 18 },
-  // West-East: Atrium <-> Hydroponics
   { c1: 31, r1: 15, c2: 34, r2: 18 },
-  // North-South: Lab <-> Life Support
   { c1: 7, r1: 21, c2: 10, r2: 24 },
-  // North-South: Hydroponics <-> Storage
   { c1: 38, r1: 21, c2: 41, r2: 24 },
-  // West-East: Life Support <-> Engineering
   { c1: 14, r1: 27, c2: 17, r2: 29 },
-  // West-East: Engineering <-> Storage
   { c1: 30, r1: 27, c2: 34, r2: 29 }
 ];
 
@@ -192,8 +172,7 @@ const CREW_NPCS = [
     room: 'COMMAND BRIDGE',
     c: 24,
     r: 6,
-    color: '#ef4444',
-    hairColor: '#94a3b8'
+    color: '#ef4444'
   },
   {
     id: 'maya',
@@ -202,8 +181,7 @@ const CREW_NPCS = [
     room: 'ENGINEERING BAY',
     c: 24,
     r: 30,
-    color: '#f59e0b',
-    hairColor: '#d97706'
+    color: '#f59e0b'
   },
   {
     id: 'tariq',
@@ -212,8 +190,7 @@ const CREW_NPCS = [
     room: 'RESEARCH LABORATORY',
     c: 8,
     r: 18,
-    color: '#10b981',
-    hairColor: '#334155'
+    color: '#10b981'
   }
 ];
 
@@ -510,23 +487,25 @@ class JrpgSpaceGame {
       y: 8 * TILE_SIZE,
       radius: 12,
       speed: 4.2,
-      facing: 'down', // 'down', 'up', 'left', 'right'
+      facing: 'down',
       isMoving: false,
       walkTimer: 0,
-      blinkTimer: 0,
-      expression: 'happy' // 'happy', 'worried', 'determined'
+      expression: 'happy'
     };
 
     // Camera
     this.camera = { x: 0, y: 0 };
 
     // Survival Resources (Bottom-Right HUD)
-    this.co2 = 15.0; // starts low, increases slowly
-    this.o2 = 92.0;  // starts high, decreases slowly
-    this.food = 88.0;// starts high, decreases slowly
+    this.co2 = 15.0;
+    this.o2 = 92.0;
+    this.food = 88.0;
+
+    // Track all completed tasks on ship
+    this.completedTasks = new Set();
 
     // Campaign State
-    this.currentDayIdx = 0; // 0 to 6 (Days 1 to 7)
+    this.currentDayIdx = 0;
     this.currentStepIdx = 0;
     this.gameActive = false;
 
@@ -538,6 +517,7 @@ class JrpgSpaceGame {
     this.isTyping = false;
     this.typewriterInterval = null;
     this.nearestTarget = null;
+    this.activeMinigameTarget = null;
 
     // Keys State
     this.keys = {};
@@ -563,9 +543,9 @@ class JrpgSpaceGame {
     window.addEventListener('resize', () => this.resizeCanvas());
 
     this.bindInputs();
+    this.renderTaskChecklist();
     this.startOpeningCutscene();
 
-    // Start main 60 FPS animation loop
     requestAnimationFrame((t) => this.loop(t));
   }
 
@@ -575,12 +555,11 @@ class JrpgSpaceGame {
   }
 
   initMapGrid() {
-    // 0 = Void, 1 = Wall, 2 = Floor, 3 = Doorway
     this.grid = [];
     for (let r = 0; r < GRID_ROWS; r++) {
       this.grid[r] = [];
       for (let c = 0; c < GRID_COLS; c++) {
-        this.grid[r][c] = 0; // default void
+        this.grid[r][c] = 0;
       }
     }
 
@@ -589,9 +568,9 @@ class JrpgSpaceGame {
       for (let r = room.r1; r <= room.r2; r++) {
         for (let c = room.c1; c <= room.c2; c++) {
           if (r === room.r1 || r === room.r2 || c === room.c1 || c === room.c2) {
-            this.grid[r][c] = 1; // wall
+            this.grid[r][c] = 1;
           } else {
-            this.grid[r][c] = 2; // walkable floor
+            this.grid[r][c] = 2;
           }
         }
       }
@@ -601,16 +580,14 @@ class JrpgSpaceGame {
     CORRIDOR_DEFS.forEach(corr => {
       for (let r = corr.r1; r <= corr.r2; r++) {
         for (let c = corr.c1; c <= corr.c2; c++) {
-          this.grid[r][c] = 2; // walkable floor
+          this.grid[r][c] = 2;
         }
       }
     });
   }
 
-  // Smooth Grid Collision with Wall Sliding
   isWalkable(x, y) {
     const pRad = this.player.radius;
-    // Check 4 corner probe points of player bounding box
     const probes = [
       { x: x - pRad, y: y - pRad },
       { x: x + pRad, y: y - pRad },
@@ -622,7 +599,7 @@ class JrpgSpaceGame {
       const c = Math.floor(p.x / TILE_SIZE);
       const r = Math.floor(p.y / TILE_SIZE);
       if (r < 0 || r >= GRID_ROWS || c < 0 || c >= GRID_COLS) return false;
-      if (this.grid[r][c] !== 2) return false; // Not a floor!
+      if (this.grid[r][c] !== 2) return false;
     }
     return true;
   }
@@ -631,7 +608,7 @@ class JrpgSpaceGame {
     window.addEventListener('keydown', (e) => {
       this.keys[e.key.toLowerCase()] = true;
 
-      if (e.key === 'e' || e.key === 'E' || e.key === ' ') {
+      if (e.key === 'e' || e.key === 'E' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         this.handleActionInput();
       }
@@ -646,6 +623,15 @@ class JrpgSpaceGame {
 
     // Mouse Navigation
     this.canvas.addEventListener('mousedown', (e) => {
+      if (this.inCutscene) {
+        this.advanceOpeningCutscene();
+        return;
+      }
+      const diagOverlay = document.getElementById('jrpg-dialogue-box');
+      if (diagOverlay && diagOverlay.classList.contains('active')) {
+        this.advanceDialogue();
+        return;
+      }
       this.isMouseDown = true;
       this.mouseTarget = { x: e.clientX + this.camera.x, y: e.clientY + this.camera.y };
     });
@@ -667,10 +653,10 @@ class JrpgSpaceGame {
       btnAct.addEventListener('click', () => this.handleActionInput());
     }
 
-    // Dialogue Box click advances text
-    const diagFrame = document.getElementById('dialogue-frame');
-    if (diagFrame) {
-      diagFrame.addEventListener('click', () => this.advanceDialogue());
+    // Dialogue Overlay click anywhere advances dialogue
+    const diagBox = document.getElementById('jrpg-dialogue-box');
+    if (diagBox) {
+      diagBox.addEventListener('click', () => this.advanceDialogue());
     }
 
     // Skip Cutscene Button
@@ -692,6 +678,18 @@ class JrpgSpaceGame {
         this.sound.muted = !this.sound.muted;
         document.getElementById('sound-icon').textContent = this.sound.muted ? '🔇' : '🔊';
         if (!this.sound.muted) this.sound.playClick();
+      });
+    }
+
+    // Tasks dropdown toggle
+    const btnToggleTasks = document.getElementById('btn-toggle-tasks');
+    const tasksList = document.getElementById('tasks-checklist-list');
+    const tasksChevron = document.getElementById('tasks-chevron');
+    if (btnToggleTasks && tasksList) {
+      btnToggleTasks.addEventListener('click', () => {
+        const isClosed = tasksList.style.display === 'none';
+        tasksList.style.display = isClosed ? 'flex' : 'none';
+        if (tasksChevron) tasksChevron.textContent = isClosed ? '▲' : '▼';
       });
     }
 
@@ -736,7 +734,7 @@ class JrpgSpaceGame {
     }
 
     const diagOverlay = document.getElementById('jrpg-dialogue-box');
-    if (diagOverlay.classList.contains('active')) {
+    if (diagOverlay && diagOverlay.classList.contains('active')) {
       this.advanceDialogue();
       return;
     }
@@ -753,13 +751,16 @@ class JrpgSpaceGame {
   startOpeningCutscene() {
     this.inCutscene = true;
     this.cutsceneStep = 0;
-    document.getElementById('cutscene-overlay').classList.add('active');
-    this.renderCutsceneScene();
+    const overlay = document.getElementById('cutscene-overlay');
+    if (overlay) overlay.classList.add('active');
+    setTimeout(() => this.renderCutsceneScene(), 50);
   }
 
   skipCutscene() {
     this.inCutscene = false;
-    document.getElementById('cutscene-overlay').classList.remove('active');
+    const overlay = document.getElementById('cutscene-overlay');
+    if (overlay) overlay.classList.remove('active');
+    document.getElementById('screen-fx-overlay').classList.remove('active');
     this.startDay(0);
   }
 
@@ -778,36 +779,35 @@ class JrpgSpaceGame {
     const portraitEl = document.getElementById('cutscene-portrait');
     const stage = document.getElementById('cutscene-stage');
     const cCanvas = document.getElementById('cutscene-canvas');
+    if (!cCanvas || !stage) return;
     const cCtx = cCanvas.getContext('2d');
 
-    cCanvas.width = stage.clientWidth;
-    cCanvas.height = stage.clientHeight;
+    cCanvas.width = stage.clientWidth || window.innerWidth;
+    cCanvas.height = stage.clientHeight || (window.innerHeight * 0.6);
 
-    // Draw cosmic scene
     cCtx.fillStyle = '#060a14';
     cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
 
     // Stars
-    cCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    for (let i = 0; i < 70; i++) {
+    cCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    for (let i = 0; i < 80; i++) {
       cCtx.beginPath();
-      cCtx.arc(Math.random() * cCanvas.width, Math.random() * cCanvas.height, Math.random() * 2, 0, Math.PI * 2);
+      cCtx.arc(Math.random() * cCanvas.width, Math.random() * cCanvas.height, Math.random() * 2 + 0.5, 0, Math.PI * 2);
       cCtx.fill();
     }
 
-    // Ship shape in deep space
+    // Spaceship
     cCtx.fillStyle = '#1e293b';
     cCtx.strokeStyle = '#38bdf8';
     cCtx.lineWidth = 3;
     cCtx.beginPath();
-    cCtx.roundRect(cCanvas.width / 2 - 120, cCanvas.height / 2 - 40, 240, 80, 20);
+    cCtx.roundRect(cCanvas.width / 2 - 130, cCanvas.height / 2 - 40, 260, 80, 20);
     cCtx.fill();
     cCtx.stroke();
 
-    // Solar panels
     cCtx.fillStyle = '#0284c7';
-    cCtx.fillRect(cCanvas.width / 2 - 190, cCanvas.height / 2 - 25, 60, 50);
-    cCtx.fillRect(cCanvas.width / 2 + 130, cCanvas.height / 2 - 25, 60, 50);
+    cCtx.fillRect(cCanvas.width / 2 - 200, cCanvas.height / 2 - 25, 60, 50);
+    cCtx.fillRect(cCanvas.width / 2 + 140, cCanvas.height / 2 - 25, 60, 50);
 
     if (this.cutsceneStep === 0) {
       speakerEl.textContent = "PROLOGUE: SCENE 1 — AN ORDINARY DAY";
@@ -819,7 +819,6 @@ class JrpgSpaceGame {
       textEl.textContent = "BOOM! An unexpected rogue asteroid strikes the lower deck! Alarms shriek across the corridors, bulkhead doors seal, and thick red dust fills the life-support vents!";
       portraitEl.innerHTML = this.getPortraitSVG('leo', 'worried');
       this.sound.playImpact();
-      // Screen shake FX
       stage.style.animation = 'shake 0.5s';
       setTimeout(() => stage.style.animation = '', 500);
       document.getElementById('screen-fx-overlay').classList.add('active');
@@ -844,11 +843,14 @@ class JrpgSpaceGame {
     this.currentStepIdx = 0;
     this.gameActive = true;
 
+    // Reset daily tasks
+    this.completedTasks.clear();
+    this.renderTaskChecklist();
+
     const campaign = STORY_CAMPAIGN[dayIdx];
     document.getElementById('hud-day-title').textContent = campaign.title;
     document.getElementById('hud-chapter-title').textContent = campaign.chapter;
 
-    // Reset daily positions
     this.player.x = 24 * TILE_SIZE;
     this.player.y = 8 * TILE_SIZE;
     this.player.facing = 'down';
@@ -877,7 +879,6 @@ class JrpgSpaceGame {
     const campaign = STORY_CAMPAIGN[this.currentDayIdx];
 
     if (this.currentStepIdx >= campaign.steps.length) {
-      // Day Completed!
       this.completeDay();
     } else {
       this.updateCurrentObjective();
@@ -890,7 +891,6 @@ class JrpgSpaceGame {
     this.gameActive = false;
     this.sound.playVictoryFanfare();
 
-    // Check if Final Day 7
     if (this.currentDayIdx >= 6) {
       this.triggerGameVictory();
       return;
@@ -908,7 +908,6 @@ class JrpgSpaceGame {
   }
 
   advanceToNextDay() {
-    // Replenish survival metrics slightly on each new morning
     this.o2 = Math.min(100, this.o2 + 10);
     this.food = Math.max(10, this.food - 8);
     this.startDay(this.currentDayIdx + 1);
@@ -957,7 +956,6 @@ class JrpgSpaceGame {
     document.getElementById('dialogue-speaker-role').textContent = speakerRole;
     document.getElementById('dialogue-portrait').innerHTML = this.getPortraitSVG(item.speaker, emotion);
 
-    // Typewriter
     this.typewriterText(item.text, item.speaker);
   }
 
@@ -977,7 +975,7 @@ class JrpgSpaceGame {
         clearInterval(this.typewriterInterval);
         this.isTyping = false;
       }
-    }, 22);
+    }, 20);
   }
 
   advanceDialogue() {
@@ -1000,60 +998,81 @@ class JrpgSpaceGame {
   }
 
   // ==========================================================================
-  // EXPRESSIVE CHIBI PORTRAIT GENERATOR (SVG)
+  // TASK CHECKLIST & PERSISTENCE
+  // ==========================================================================
+  renderTaskChecklist() {
+    const listEl = document.getElementById('tasks-checklist-list');
+    const countEl = document.getElementById('task-completion-count');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    const taskObjects = INTERACTIVE_OBJECTS.filter(o => o.type === 'task');
+    let completedCount = 0;
+
+    taskObjects.forEach(task => {
+      const isDone = this.completedTasks.has(task.id);
+      if (isDone) completedCount++;
+
+      const li = document.createElement('li');
+      li.className = `task-item-row ${isDone ? 'completed' : ''}`;
+      li.innerHTML = `
+        <span class="task-bullet">${isDone ? '✓' : '●'}</span>
+        <span>${task.room}: ${task.name}</span>
+      `;
+      li.addEventListener('click', () => {
+        // Teleport camera/hint
+        this.showToast(`Console located in ${task.room}`);
+      });
+      listEl.appendChild(li);
+    });
+
+    if (countEl) {
+      countEl.textContent = `${completedCount}/${taskObjects.length}`;
+    }
+  }
+
+  // ==========================================================================
+  // EXPRESSIVE CHIBI PORTRAIT GENERATOR (RESPONSIVE SVG)
   // ==========================================================================
   getPortraitSVG(character, emotion = 'happy') {
     if (character === 'vance') {
       return `
-        <svg viewBox="0 0 100 100" width="80" height="80">
-          <circle cx="50" cy="50" r="42" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
-          <!-- Silver hair -->
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+          <circle cx="50" cy="50" r="44" fill="#1e293b" stroke="#ef4444" stroke-width="3"/>
           <path d="M 25 35 Q 50 15 75 35 Q 75 25 50 20 Q 25 25 25 35" fill="#cbd5e1"/>
-          <!-- Face -->
           <circle cx="50" cy="52" r="28" fill="#fed7aa"/>
-          <!-- Beard / Mustache -->
           <path d="M 40 62 Q 50 66 60 62 Q 50 70 40 62" fill="#94a3b8"/>
-          <!-- Eyes -->
           <circle cx="42" cy="48" r="3.5" fill="#0f172a"/>
           <circle cx="58" cy="48" r="3.5" fill="#0f172a"/>
-          <!-- Eyebrows -->
           <line x1="38" y1="42" x2="46" y2="44" stroke="#475569" stroke-width="2.5"/>
           <line x1="62" y1="44" x2="54" y2="42" stroke="#475569" stroke-width="2.5"/>
         </svg>
       `;
     } else if (character === 'maya') {
       return `
-        <svg viewBox="0 0 100 100" width="80" height="80">
-          <circle cx="50" cy="50" r="42" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
-          <!-- Hair & Bandana -->
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+          <circle cx="50" cy="50" r="44" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
           <circle cx="50" cy="50" r="32" fill="#78350f"/>
           <rect x="24" y="32" width="52" height="10" rx="4" fill="#f59e0b"/>
-          <!-- Face -->
           <circle cx="50" cy="54" r="25" fill="#fde68a"/>
-          <!-- Big Anime Eyes -->
           <ellipse cx="40" cy="52" rx="4.5" ry="6" fill="#0f172a"/>
           <ellipse cx="60" cy="52" rx="4.5" ry="6" fill="#0f172a"/>
           <circle cx="39" cy="50" r="2" fill="#fff"/>
           <circle cx="59" cy="50" r="2" fill="#fff"/>
-          <!-- Smile -->
           <path d="M 44 65 Q 50 70 56 65" stroke="#92400e" stroke-width="2.5" fill="none"/>
         </svg>
       `;
     } else if (character === 'tariq') {
       return `
-        <svg viewBox="0 0 100 100" width="80" height="80">
-          <circle cx="50" cy="50" r="42" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
-          <!-- Hair -->
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+          <circle cx="50" cy="50" r="44" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
           <path d="M 28 42 Q 50 20 72 42 Q 68 25 50 24 Q 32 25 28 42" fill="#1e293b"/>
-          <!-- Face -->
           <circle cx="50" cy="54" r="26" fill="#fcd34d"/>
-          <!-- Glasses -->
           <circle cx="41" cy="50" r="8" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
           <circle cx="59" cy="50" r="8" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
           <line x1="49" y1="50" x2="51" y2="50" stroke="#38bdf8" stroke-width="2.5"/>
           <circle cx="41" cy="50" r="3" fill="#0f172a"/>
           <circle cx="59" cy="50" r="3" fill="#0f172a"/>
-          <!-- Gentle Smile -->
           <path d="M 45 66 Q 50 69 55 66" stroke="#78350f" stroke-width="2" fill="none"/>
         </svg>
       `;
@@ -1061,66 +1080,79 @@ class JrpgSpaceGame {
 
     // Default: Cadet Leo (Cute Chibi Astronaut)
     return `
-      <svg viewBox="0 0 100 100" width="80" height="80">
-        <circle cx="50" cy="50" r="42" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/>
-        <!-- Big Round Glossy Visor -->
+      <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+        <circle cx="50" cy="50" r="44" fill="#0f172a" stroke="#38bdf8" stroke-width="3"/>
         <circle cx="50" cy="50" r="32" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
-        <!-- Face inside Visor -->
         <circle cx="50" cy="54" r="24" fill="#fed7aa"/>
-        <!-- Big Cute Anime Eyes -->
         <ellipse cx="41" cy="50" rx="4.5" ry="6.5" fill="#0f172a"/>
         <ellipse cx="59" cy="50" rx="4.5" ry="6.5" fill="#0f172a"/>
         <circle cx="40" cy="48" r="2" fill="#fff"/>
         <circle cx="58" cy="48" r="2" fill="#fff"/>
-        <!-- Soft Blush -->
         <circle cx="35" cy="58" r="4" fill="#fda4af" opacity="0.7"/>
         <circle cx="65" cy="58" r="4" fill="#fda4af" opacity="0.7"/>
-        <!-- Cute Smile or Gasp -->
         ${emotion === 'worried' 
           ? '<ellipse cx="50" cy="62" rx="3.5" ry="4" fill="#991b1b"/>' 
           : '<path d="M 45 61 Q 50 67 55 61" stroke="#9a3412" stroke-width="2.5" fill="none"/>'}
-        <!-- Visor Gloss Reflection -->
         <path d="M 28 35 Q 50 25 72 35" stroke="#bae6fd" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6"/>
       </svg>
     `;
   }
 
   // ==========================================================================
-  // INTERACTION HANDLING
+  // INTERACTION HANDLING (ALWAYS ACCESSIBLE!)
   // ==========================================================================
   interactWithTarget(target) {
     const step = this.getCurrentStep();
-    if (!step) return;
 
-    // Check if this target matches the active step
-    if (step.targetId === target.id) {
-      if (step.dialogue) {
+    // 1. If NPC, speak with NPC
+    if (target.isNPC) {
+      if (step && step.targetId === target.id && step.dialogue) {
         this.startDialogueSequence(step.dialogue, () => {
           this.advanceStep();
         });
-      } else if (step.taskMinigame) {
-        this.openMinigame(step.taskMinigame, target);
+      } else {
+        if (target.id === 'vance') {
+          this.startDialogueSequence([
+            { speaker: 'vance', text: "Keep a watchful eye on the life-support meters, Leo. We survive as one team." }
+          ]);
+        } else if (target.id === 'maya') {
+          this.startDialogueSequence([
+            { speaker: 'maya', text: "All systems in Engineering are operating within safe tolerances. Don't forget to check the wiring!" }
+          ]);
+        } else if (target.id === 'tariq') {
+          this.startDialogueSequence([
+            { speaker: 'tariq', text: "The hydroponic crops are thriving. Remember to harvest fresh produce to keep our rations high." }
+          ]);
+        }
       }
-    } else {
-      // General banter if talking to NPC out of order
-      if (target.id === 'vance') {
+      return;
+    }
+
+    // 2. If Rest Bunk
+    if (target.id === 'bunk_bed') {
+      if (step && step.targetId === 'bunk_bed') {
         this.startDialogueSequence([
-          { speaker: 'vance', text: "Stay focused on your assignment, Leo. Every system we repair brings us closer to resupply." }
-        ]);
-      } else if (target.id === 'maya') {
+          { speaker: 'leo', text: "Tasks for today are accomplished. Resting in the bunk until tomorrow..." }
+        ], () => {
+          this.advanceStep();
+        });
+      } else {
         this.startDialogueSequence([
-          { speaker: 'maya', text: "I'm checking the cooling manifolds. Keep your suit seals tight, Cadet!" }
-        ]);
-      } else if (target.id === 'tariq') {
-        this.startDialogueSequence([
-          { speaker: 'tariq', text: "The algae bioreactors are photosynthesizing well today. Nature is resilient, even in deep space." }
+          { speaker: 'leo', text: "I still have active tasks to complete before I can rest for the night!" }
         ]);
       }
+      return;
+    }
+
+    // 3. If Task Console — ALWAYS OPENS THE MINIGAME!
+    if (target.type === 'task') {
+      this.activeMinigameTarget = target;
+      this.openMinigame(target.taskId, target);
     }
   }
 
   // ==========================================================================
-  // MINIGAMES INTEGRATION
+  // MINIGAMES IMPLEMENTATION (ROBUST, DRAGGABLE, PLAYABLE)
   // ==========================================================================
   openMinigame(minigameId, target) {
     this.sound.playClick();
@@ -1163,11 +1195,17 @@ class JrpgSpaceGame {
   closeMinigame() {
     const modal = document.getElementById('task-modal');
     if (modal) modal.classList.remove('active');
+    this.activeMinigameTarget = null;
   }
 
   onMinigameComplete() {
     this.sound.playChime();
     this.closeMinigame();
+
+    if (this.activeMinigameTarget) {
+      this.completedTasks.add(this.activeMinigameTarget.id);
+      this.renderTaskChecklist();
+    }
 
     // Replenish survival meters
     this.o2 = Math.min(100, this.o2 + 15);
@@ -1175,59 +1213,98 @@ class JrpgSpaceGame {
     this.food = Math.min(100, this.food + 15);
     this.updateHUD();
 
-    this.advanceStep();
+    this.showToast("Task Complete! Ship Systems Restored.");
+
+    // Advance story step if this task was the current objective
+    const step = this.getCurrentStep();
+    if (step && this.activeMinigameTarget && step.targetId === this.activeMinigameTarget.id) {
+      this.advanceStep();
+    }
   }
 
   renderO2Filter(container) {
     container.innerHTML = `
-      <div style="position:relative; width:100%; height:100%; background:#101726;">
-        <div id="v-chute" style="position:absolute; left:20px; top:80px; width:120px; height:240px; border:3px dashed #38bdf8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#38bdf8; font-weight:700;">
-          <span style="font-size:2rem;">⬅</span>
-          <span>DISPOSAL</span>
+      <div id="filter-box" style="position:relative; width:100%; height:100%; background:#101726; overflow:hidden;">
+        <div id="v-chute" style="position:absolute; left:25px; top:60px; width:130px; height:260px; border:3px dashed #38bdf8; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#38bdf8; font-weight:700; pointer-events:none;">
+          <span style="font-size:2.5rem;">⬅</span>
+          <span>SUCTION CHUTE</span>
         </div>
       </div>
     `;
-    const box = container.firstElementChild;
+    const box = document.getElementById('filter-box');
     const chute = document.getElementById('v-chute');
     let cleared = 0;
     const pieces = ['🍂', '🪨', '🍂', '🔩'];
 
     pieces.forEach((icon, i) => {
       const p = document.createElement('div');
-      p.style.cssText = `position:absolute; left:${220 + i * 80}px; top:${120 + (i % 2) * 90}px; font-size:2.2rem; cursor:grab; user-select:none;`;
+      p.style.cssText = `position:absolute; left:${240 + i * 85}px; top:${100 + (i % 2) * 110}px; font-size:2.6rem; cursor:grab; user-select:none; z-index:10;`;
       p.textContent = icon;
       box.appendChild(p);
 
-      let drag = false, sx, sy;
-      p.addEventListener('mousedown', (e) => { drag = true; sx = e.clientX - p.offsetLeft; sy = e.clientY - p.offsetTop; });
-      window.addEventListener('mousemove', (e) => {
-        if (!drag) return;
-        p.style.left = `${e.clientX - sx}px`;
-        p.style.top = `${e.clientY - sy}px`;
+      let isDragging = false;
+      let startX, startY;
+      let initialLeft, initialTop;
+
+      const onStart = (clientX, clientY) => {
+        isDragging = true;
+        startX = clientX;
+        startY = clientY;
+        initialLeft = p.offsetLeft;
+        initialTop = p.offsetTop;
+        p.style.cursor = 'grabbing';
+      };
+
+      const onMove = (clientX, clientY) => {
+        if (!isDragging) return;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        p.style.left = `${initialLeft + dx}px`;
+        p.style.top = `${initialTop + dy}px`;
+
         const pr = p.getBoundingClientRect();
         const cr = chute.getBoundingClientRect();
         if (pr.left < cr.right && pr.right > cr.left && pr.top < cr.bottom && pr.bottom > cr.top) {
-          drag = false;
+          isDragging = false;
           p.remove();
           this.sound.playTone(600, 'square', 0.08, 0.05);
           cleared++;
           if (cleared >= pieces.length) this.onMinigameComplete();
         }
-      });
-      window.addEventListener('mouseup', () => drag = false);
+      };
+
+      const onEnd = () => {
+        isDragging = false;
+        p.style.cursor = 'grab';
+      };
+
+      p.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
+      window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', onEnd);
+
+      p.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) onStart(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchend', onEnd);
     });
   }
 
   renderWiring(container) {
     const colors = ['#ef4444', '#38bdf8', '#eab308', '#ec4899'];
     container.innerHTML = `
-      <div style="display:flex; justify-content:space-between; width:100%; padding:2.5rem 4rem; height:100%; align-items:center;">
-        <div id="w-left" style="display:flex; flex-direction:column; gap:2rem;">
-          ${colors.map((c, i) => `<button class="w-btn" data-c="${c}" style="width:36px; height:36px; border-radius:8px; background:${c}; border:3px solid #000; cursor:pointer;"></button>`).join('')}
+      <div style="display:flex; justify-content:space-between; width:100%; padding:2.5rem 4rem; height:100%; align-items:center; background:#111726;">
+        <div id="w-left" style="display:flex; flex-direction:column; gap:2.2rem;">
+          ${colors.map((c) => `<button class="w-btn" data-c="${c}" style="width:40px; height:40px; border-radius:10px; background:${c}; border:3px solid #000; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.5);"></button>`).join('')}
         </div>
-        <div style="color:#94a3b8; font-weight:700;">CONNECT CIRCUIT</div>
-        <div id="w-right" style="display:flex; flex-direction:column; gap:2rem;">
-          ${colors.map((c, i) => `<button class="w-tgt" data-c="${c}" style="width:36px; height:36px; border-radius:8px; background:${c}; border:3px solid #000; cursor:pointer;"></button>`).join('')}
+        <div style="color:#94a3b8; font-weight:700; text-align:center;">
+          <div>SELECT WIRE</div>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:4px;">Then click matching socket</div>
+        </div>
+        <div id="w-right" style="display:flex; flex-direction:column; gap:2.2rem;">
+          ${[...colors].reverse().map((c) => `<button class="w-tgt" data-c="${c}" style="width:40px; height:40px; border-radius:10px; background:${c}; border:3px solid #000; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.5);"></button>`).join('')}
         </div>
       </div>
     `;
@@ -1237,18 +1314,22 @@ class JrpgSpaceGame {
     container.querySelectorAll('.w-btn').forEach(b => {
       b.onclick = () => {
         activeColor = b.dataset.c;
-        b.style.boxShadow = '0 0 12px #fff';
+        container.querySelectorAll('.w-btn').forEach(x => x.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5)');
+        b.style.boxShadow = '0 0 16px #fff';
         this.sound.playTone(500, 'sine', 0.05, 0.04);
       };
     });
     container.querySelectorAll('.w-tgt').forEach(t => {
       t.onclick = () => {
         if (t.dataset.c === activeColor) {
-          t.style.opacity = '0.4';
-          this.sound.playTone(800, 'triangle', 0.08, 0.05);
+          t.style.opacity = '0.35';
+          t.disabled = true;
+          this.sound.playTone(850, 'triangle', 0.08, 0.05);
           connected++;
           activeColor = null;
           if (connected >= 4) this.onMinigameComplete();
+        } else {
+          this.sound.playTone(200, 'sawtooth', 0.1, 0.05);
         }
       };
     });
@@ -1258,8 +1339,8 @@ class JrpgSpaceGame {
     let expected = 1;
     const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].sort(() => Math.random() - 0.5);
     container.innerHTML = `
-      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:1rem; padding:2rem; width:100%; max-width:500px;">
-        ${nums.map(n => `<button class="m-btn" data-n="${n}" style="aspect-ratio:1; font-size:1.8rem; font-weight:800; background:#242f48; border:3px solid #475569; border-radius:12px; color:#fff; cursor:pointer;">${n}</button>`).join('')}
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:1rem; padding:2rem; width:100%; max-width:520px;">
+        ${nums.map(n => `<button class="m-btn" data-n="${n}" style="aspect-ratio:1; font-size:1.8rem; font-weight:800; background:#242f48; border:3px solid #475569; border-radius:14px; color:#fff; cursor:pointer; transition:all 0.15s;">${n}</button>`).join('')}
       </div>
     `;
     container.querySelectorAll('.m-btn').forEach(btn => {
@@ -1269,6 +1350,7 @@ class JrpgSpaceGame {
           this.sound.playTone(320 + expected * 60, 'triangle', 0.1, 0.05);
           btn.style.background = '#22c55e';
           btn.style.borderColor = '#4ade80';
+          btn.disabled = true;
           expected++;
           if (expected > 10) this.onMinigameComplete();
         } else {
@@ -1277,6 +1359,7 @@ class JrpgSpaceGame {
           container.querySelectorAll('.m-btn').forEach(b => {
             b.style.background = '#242f48';
             b.style.borderColor = '#475569';
+            b.disabled = false;
           });
         }
       };
@@ -1287,14 +1370,14 @@ class JrpgSpaceGame {
     let hits = 0;
     container.innerHTML = `
       <div style="position:relative; width:100%; height:100%; cursor:crosshair; background:#020617; overflow:hidden;">
-        <div style="position:absolute; top:1rem; right:1.5rem; font-family:var(--font-mono); font-weight:700; color:#ef4444; font-size:1.1rem;">BLASTED: <span id="ast-num">0</span> / 6</div>
+        <div style="position:absolute; top:1rem; right:1.5rem; font-family:var(--font-mono); font-weight:700; color:#ef4444; font-size:1.1rem; z-index:20;">BLASTED: <span id="ast-num">0</span> / 6</div>
         <div id="ast-box"></div>
       </div>
     `;
     const box = document.getElementById('ast-box');
     for (let i = 0; i < 6; i++) {
       const ast = document.createElement('div');
-      ast.style.cssText = `position:absolute; left:${50 + Math.random() * 480}px; top:${40 + Math.random() * 260}px; font-size:2.8rem; cursor:pointer;`;
+      ast.style.cssText = `position:absolute; left:${50 + Math.random() * 480}px; top:${40 + Math.random() * 260}px; font-size:2.8rem; cursor:pointer; user-select:none;`;
       ast.textContent = '☄️';
       box.appendChild(ast);
 
@@ -1311,12 +1394,12 @@ class JrpgSpaceGame {
   renderHydro(container) {
     let harvested = 0;
     container.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:2rem; padding:2rem;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:2rem; padding:2rem; justify-content:center; height:100%;">
         <div style="display:flex; gap:2rem; font-size:3.5rem;">
-          <span class="crop" style="cursor:pointer;">🥔</span>
-          <span class="crop" style="cursor:pointer;">🍅</span>
-          <span class="crop" style="cursor:pointer;">🥕</span>
-          <span class="crop" style="cursor:pointer;">🥬</span>
+          <span class="crop" style="cursor:pointer; transition:transform 0.2s;">🥔</span>
+          <span class="crop" style="cursor:pointer; transition:transform 0.2s;">🍅</span>
+          <span class="crop" style="cursor:pointer; transition:transform 0.2s;">🥕</span>
+          <span class="crop" style="cursor:pointer; transition:transform 0.2s;">🥬</span>
         </div>
         <div style="color:#22c55e; font-weight:700;">CLICK RIPE CROPS TO HARVEST</div>
       </div>
@@ -1325,7 +1408,7 @@ class JrpgSpaceGame {
       c.onclick = () => {
         this.sound.playClick();
         c.style.transform = 'scale(0)';
-        c.style.transition = 'transform 0.2s';
+        c.style.pointerEvents = 'none';
         harvested++;
         if (harvested >= 4) this.onMinigameComplete();
       };
@@ -1334,11 +1417,14 @@ class JrpgSpaceGame {
 
   renderScan(container) {
     container.innerHTML = `
-      <div style="display:flex; gap:1.5rem; align-items:center; justify-content:center; height:100%;">
-        <div class="tube" style="width:45px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#22c55e; cursor:pointer;"></div>
-        <div class="tube" style="width:45px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#38bdf8; cursor:pointer;"></div>
-        <div id="bad-tube" style="width:45px; height:160px; border:3px solid #ef4444; border-radius:0 0 20px 20px; background:#ef4444; cursor:pointer; box-shadow:0 0 16px rgba(239,68,68,0.7);"></div>
-        <div class="tube" style="width:45px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#eab308; cursor:pointer;"></div>
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:2rem;">
+        <div style="display:flex; gap:1.8rem; align-items:center;">
+          <div class="tube" style="width:48px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#22c55e; cursor:pointer;"></div>
+          <div class="tube" style="width:48px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#38bdf8; cursor:pointer;"></div>
+          <div id="bad-tube" style="width:48px; height:160px; border:3px solid #ef4444; border-radius:0 0 20px 20px; background:#ef4444; cursor:pointer; box-shadow:0 0 20px rgba(239,68,68,0.8);"></div>
+          <div class="tube" style="width:48px; height:160px; border:3px solid #64748b; border-radius:0 0 20px 20px; background:#eab308; cursor:pointer;"></div>
+        </div>
+        <div style="font-family:var(--font-mono); color:#f87171; font-weight:700;">⚠️ CLICK THE ANOMALOUS RED PATHOGEN CULTURE</div>
       </div>
     `;
     document.getElementById('bad-tube').onclick = () => this.onMinigameComplete();
@@ -1346,11 +1432,11 @@ class JrpgSpaceGame {
 
   renderRefuel(container) {
     container.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:1.5rem; justify-content:center; height:100%;">
-        <div style="width:240px; height:24px; background:#0f172a; border:2px solid #475569; border-radius:999px; overflow:hidden;">
-          <div id="tank-fill" style="height:100%; width:0%; background:#f59e0b;"></div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:1.8rem; justify-content:center; height:100%;">
+        <div style="width:260px; height:26px; background:#0f172a; border:2px solid #475569; border-radius:999px; overflow:hidden;">
+          <div id="tank-fill" style="height:100%; width:0%; background:#f59e0b; transition:width 0.05s linear;"></div>
         </div>
-        <button id="btn-pump" class="btn-jrpg-primary btn-gold" style="padding:1rem 2rem;">HOLD TO TRANSFER COOLANT</button>
+        <button id="btn-pump" class="btn-jrpg-primary btn-gold" style="padding:1rem 2.2rem; font-size:1.1rem;">HOLD TO TRANSFER COOLANT</button>
       </div>
     `;
     const fill = document.getElementById('tank-fill');
@@ -1358,7 +1444,7 @@ class JrpgSpaceGame {
     let pct = 0, itv = null;
     const start = () => {
       itv = setInterval(() => {
-        pct += 3;
+        pct += 3.5;
         fill.style.width = `${pct}%`;
         this.sound.playTone(250 + pct * 3, 'sawtooth', 0.05, 0.02);
         if (pct >= 100) { clearInterval(itv); this.onMinigameComplete(); }
@@ -1368,13 +1454,15 @@ class JrpgSpaceGame {
     btn.onmousedown = start;
     btn.onmouseup = stop;
     btn.onmouseleave = stop;
+    btn.ontouchstart = (e) => { e.preventDefault(); start(); };
+    btn.ontouchend = stop;
   }
 
   renderComms(container) {
     container.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:1.5rem; justify-content:center; height:100%;">
-        <div style="font-size:4rem;">📡</div>
-        <button id="btn-trans" class="btn-jrpg-primary" style="padding:1rem 2rem;">TRANSMIT ORBITAL BEACON</button>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:1.8rem; justify-content:center; height:100%;">
+        <div style="font-size:4.5rem;">📡</div>
+        <button id="btn-trans" class="btn-jrpg-primary" style="padding:1rem 2.2rem; font-size:1.1rem;">TRANSMIT ORBITAL BEACON</button>
       </div>
     `;
     document.getElementById('btn-trans').onclick = () => {
@@ -1395,7 +1483,6 @@ class JrpgSpaceGame {
   update() {
     if (!this.gameActive) return;
 
-    // Movement Handling
     let dx = 0, dy = 0;
     if (this.keys['w'] || this.keys['arrowup']) dy -= 1;
     if (this.keys['s'] || this.keys['arrowdown']) dy += 1;
@@ -1427,7 +1514,6 @@ class JrpgSpaceGame {
       this.player.walkTimer += 0.24;
       this.sound.playStep();
 
-      // Wall-sliding movement
       const nextX = this.player.x + dx * this.player.speed;
       const nextY = this.player.y + dy * this.player.speed;
 
@@ -1435,13 +1521,11 @@ class JrpgSpaceGame {
       if (this.isWalkable(this.player.x, nextY)) this.player.y = nextY;
     }
 
-    // Camera follow player smoothly
     const targetCamX = this.player.x - this.canvas.width / 2;
     const targetCamY = this.player.y - this.canvas.height / 2;
     this.camera.x += (targetCamX - this.camera.x) * 0.12;
     this.camera.y += (targetCamY - this.camera.y) * 0.12;
 
-    // Proximity to NPCs and Interactive Objects
     this.checkProximity();
 
     // Survival Decay
@@ -1449,7 +1533,6 @@ class JrpgSpaceGame {
     this.o2 = Math.max(0, this.o2 - 0.0025);
     this.food = Math.max(0, this.food - 0.0018);
 
-    // Defeat Condition
     if (this.co2 >= 100 || this.o2 <= 0 || this.food <= 0) {
       this.triggerGameDefeat();
       return;
@@ -1461,7 +1544,7 @@ class JrpgSpaceGame {
 
   checkProximity() {
     let nearest = null;
-    let minDist = 68;
+    let minDist = 72;
 
     // Check NPCs
     for (const npc of CREW_NPCS) {
@@ -1602,18 +1685,15 @@ class JrpgSpaceGame {
         const y = r * TILE_SIZE;
 
         if (val === 1) {
-          // Wall / Bulkhead
           ctx.fillStyle = '#1e293b';
           ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
           ctx.strokeStyle = '#334155';
           ctx.lineWidth = 1;
           ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
         } else if (val === 2) {
-          // Walkable Floor
           ctx.fillStyle = '#111726';
           ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
-          // Subtle grid pattern
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
           ctx.lineWidth = 1;
           ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
@@ -1621,7 +1701,6 @@ class JrpgSpaceGame {
       }
     }
 
-    // Room Label Banners on Floor
     ROOM_DEFS.forEach(room => {
       const rx = (room.c1 + room.c2) / 2 * TILE_SIZE;
       const ry = (room.r1 + 1.2) * TILE_SIZE;
@@ -1637,22 +1716,21 @@ class JrpgSpaceGame {
       const x = obj.c * TILE_SIZE;
       const y = obj.r * TILE_SIZE;
       const isTarget = (this.nearestTarget && this.nearestTarget.id === obj.id);
+      const isCompleted = this.completedTasks.has(obj.id);
 
-      ctx.fillStyle = '#1e293b';
+      ctx.fillStyle = isCompleted ? '#1e293b' : '#334155';
       ctx.beginPath();
       ctx.roundRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8, 8);
       ctx.fill();
-      ctx.strokeStyle = isTarget ? '#f59e0b' : '#475569';
+      ctx.strokeStyle = isTarget ? '#f59e0b' : (isCompleted ? '#22c55e' : '#475569');
       ctx.lineWidth = isTarget ? 3 : 1.5;
       ctx.stroke();
 
-      // Screen icon
       ctx.font = '16px Fredoka, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(obj.icon, x + TILE_SIZE / 2, y + TILE_SIZE / 2 + 5);
 
       if (isTarget) {
-        // Floating Prompt
         ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
         ctx.arc(x + TILE_SIZE / 2, y - 10, 10, 0, Math.PI * 2);
@@ -1670,38 +1748,32 @@ class JrpgSpaceGame {
       const y = (npc.r + 0.5) * TILE_SIZE;
       const isTarget = (this.nearestTarget && this.nearestTarget.id === npc.id);
 
-      // Shadow
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.beginPath();
       ctx.ellipse(x, y + 14, 12, 6, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body / Suit
       ctx.fillStyle = npc.color;
       ctx.beginPath();
       ctx.roundRect(x - 10, y - 6, 20, 18, 6);
       ctx.fill();
 
-      // Head / Helmet
       ctx.fillStyle = '#fff';
       ctx.beginPath();
       ctx.arc(x, y - 12, 12, 0, Math.PI * 2);
       ctx.fill();
 
-      // Visor
       ctx.fillStyle = '#38bdf8';
       ctx.beginPath();
       ctx.roundRect(x - 7, y - 15, 14, 8, 4);
       ctx.fill();
 
-      // Name Tag
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       ctx.font = 'bold 11px Fredoka, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(npc.name, x, y - 26);
 
       if (isTarget) {
-        // Floating Talk Bubble
         ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
         ctx.arc(x, y - 38, 11, 0, Math.PI * 2);
@@ -1713,9 +1785,6 @@ class JrpgSpaceGame {
     }
   }
 
-  // ==========================================================================
-  // CUTE CHIBI ASTRONAUT PROTAGONIST (LEO)
-  // ==========================================================================
   renderChibiPlayer(ctx) {
     const p = this.player;
     const waddle = p.isMoving ? Math.sin(p.walkTimer) * 4 : 0;
@@ -1723,13 +1792,11 @@ class JrpgSpaceGame {
     ctx.save();
     ctx.translate(p.x, p.y);
 
-    // Shadow
     ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.beginPath();
     ctx.ellipse(0, 14, 13, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Backpack (Visible when facing up or sides)
     if (p.facing === 'up') {
       ctx.fillStyle = '#0284c7';
       ctx.beginPath();
@@ -1746,7 +1813,6 @@ class JrpgSpaceGame {
       ctx.fillRect(-14, -8, 8, 16);
     }
 
-    // Chubby Suit Body
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.roundRect(-10, -4, 20, 18, [6, 6, 8, 8]);
@@ -1755,16 +1821,13 @@ class JrpgSpaceGame {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Teal Suit Trim
     ctx.fillStyle = '#06b6d4';
     ctx.fillRect(-10, 8, 20, 4);
 
-    // Stubby Boots with Waddle
     ctx.fillStyle = '#334155';
     ctx.fillRect(-9, 14, 7, 6 + waddle);
     ctx.fillRect(2, 14, 7, 6 - waddle);
 
-    // Big Glossy Round Helmet
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(0, -12, 15, 0, Math.PI * 2);
@@ -1773,7 +1836,6 @@ class JrpgSpaceGame {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Visor with Face inside
     if (p.facing !== 'up') {
       let vx = 0;
       if (p.facing === 'left') vx = -4;
@@ -1784,27 +1846,23 @@ class JrpgSpaceGame {
       ctx.roundRect(-10 + vx, -17, 20, 12, 6);
       ctx.fill();
 
-      // Expressive Cute Face
       ctx.fillStyle = '#fed7aa';
       ctx.beginPath();
       ctx.roundRect(-8 + vx, -15, 16, 9, 4);
       ctx.fill();
 
-      // Cute Big Anime Eyes
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
       ctx.arc(-4 + vx, -12, 2.2, 0, Math.PI * 2);
       ctx.arc(4 + vx, -12, 2.2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Eye Sparkles
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(-4.5 + vx, -13, 0.9, 0, Math.PI * 2);
       ctx.arc(3.5 + vx, -13, 0.9, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cute Blush
       ctx.fillStyle = '#fda4af';
       ctx.beginPath();
       ctx.arc(-6 + vx, -8, 2, 0, Math.PI * 2);
@@ -1825,8 +1883,8 @@ class JrpgSpaceGame {
     const modal = document.getElementById('ending-cutscene-modal');
     modal.classList.add('active');
 
-    // Draw panoramic observation deck vista
     const vCanvas = document.getElementById('ending-vista-canvas');
+    if (!vCanvas) return;
     const vCtx = vCanvas.getContext('2d');
     vCanvas.width = 600;
     vCanvas.height = 220;
@@ -1834,7 +1892,6 @@ class JrpgSpaceGame {
     vCtx.fillStyle = '#050914';
     vCtx.fillRect(0, 0, vCanvas.width, vCanvas.height);
 
-    // Stars & Nebula
     const grad = vCtx.createRadialGradient(300, 110, 20, 300, 110, 260);
     grad.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
     grad.addColorStop(0.5, 'rgba(56, 189, 248, 0.2)');
@@ -1842,7 +1899,6 @@ class JrpgSpaceGame {
     vCtx.fillStyle = grad;
     vCtx.fillRect(0, 0, vCanvas.width, vCanvas.height);
 
-    // Approaching Golden Valkyrie-1 Freighter
     vCtx.fillStyle = '#f59e0b';
     vCtx.beginPath();
     vCtx.roundRect(220, 60, 160, 70, 16);
@@ -1876,13 +1932,13 @@ class JrpgSpaceGame {
     this.co2 = 15.0;
     this.o2 = 92.0;
     this.food = 88.0;
+    this.completedTasks.clear();
     this.currentDayIdx = 0;
     this.currentStepIdx = 0;
     this.startDay(0);
   }
 }
 
-// Global start
 if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     window.spaceGame = new JrpgSpaceGame();

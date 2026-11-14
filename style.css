@@ -163,6 +163,88 @@ html, body {
   white-space: nowrap;
 }
 
+/* Tasks Checklist Dropdown (Top-Left) */
+.hud-tasks-dropdown {
+  position: absolute;
+  top: 4.8rem;
+  left: 1.25rem;
+  z-index: 25;
+  width: 320px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.tasks-dropdown-header {
+  padding: 0.55rem 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tasks-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 0.05em;
+}
+
+.tasks-chevron {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: transform 0.2s;
+}
+
+.tasks-checklist {
+  list-style: none;
+  padding: 0.45rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.task-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+
+.task-item-row:hover {
+  color: #fff;
+}
+
+.task-item-row.completed {
+  color: var(--green);
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.task-bullet {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.task-item-row.completed .task-bullet {
+  color: var(--green);
+}
+  gap: 0.65rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .obj-label {
   font-family: var(--font-display);
   font-size: 0.72rem;
