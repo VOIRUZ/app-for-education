@@ -34,7 +34,7 @@ Space-themed STEM content often oversimplifies the engineering trade-offs that d
 
 ---
 
-## 📚 References & Resources
+## 📚 References & Resources 
 
 - [NASA Space Apps Challenge 2026 - Challenge Details](https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/?tab=details)
 - [NASA Artemis Program](https://www.nasa.gov/specials/artemis/)
