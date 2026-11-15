@@ -1,183 +1,207 @@
-documnentation script
-This documentary, Apollo 13: Home Safe, details the dramatic story of the aborted 1970 lunar mission, often called a "successful failure." Following a catastrophic oxygen tank explosion, the mission shifted from a lunar landing to a perilous survival effort to bring the crew—Jim Lovell, Fred Haise, and Jack Swigert—back to Earth safely.
+# **MOON WATER RESEARCH & SURVIVAL**
 
-Key phases of the mission and recovery:
+## **STORYLINE WITH TIMELINE**
 
-The Crisis (0:50 - 6:50): The mission was plagued by issues from the start, culminating in a loud explosion that crippled the Service Module and forced the crew to use the Lunar Module as a lifeboat.
-Survival and Ingenuity (7:40 - 16:30): With limited power and supplies, the crew and Mission Control teams (led by flight directors Gene Kranz and Glynn Lunney) worked under immense pressure. They improvised solutions, including managing carbon dioxide levels with modified lithium hydroxide canisters and powering down systems to conserve battery life for reentry.
-Trajectory Adjustments (12:46 - 19:20): Several critical maneuvers were performed, including an unprecedented manual burn to shorten their return path and an improvised navigation technique using the Earth's terminator to orient the spacecraft.
-The Return (20:25 - 23:30): Mission Control developed a brand-new procedure to power up the dead Command Module for reentry. The crew successfully jettisoned the Service Module and then the Lunar Module just before final atmospheric entry.
-Splashdown (24:30 - 28:00): The mission concluded with a textbook splashdown. Despite the immense danger and the loss of the lunar landing objective, the safe return of the crew was celebrated as a monumental achievement of human ingenuity and cooperation.
+**Genre:** Space Exploration, Science, Survival\
+**Duration:** 7 Days\
+**Characters:** Main Astronaut (Player) and Helper Astronaut\
+**Main Objective:** Investigate lunar water, survive an unexpected accident and decide the future of the mission.
 
+### **1. THE JOURNEY BEGINS | EARTH**
 
+- Two astronauts prepare for a lunar water research mission.
+- Mission Control explains the objective: explore the Moon, collect samples and investigate possible water deposits.
+- The spacecraft consists of three connected modules: Navigation Module, Crew Module and Resource Module.
+- Countdown begins: 3... 2... 1...
+- The spacecraft launches towards the Moon.
 
+### **2. THE ACCIDENT | SPACE JOURNEY**
 
-taking inspiration from this incident
-8 DAYS TO SURVIVE
-Year: 1970
+**First Impact**
 
-NASA's Apollo 13 mission is carrying three astronauts – Jim Lovell, Fred Haise, and Jack Swigert – towards the Moon. However, during their journey, an oxygen tank explodes, damaging the spacecraft's power and life-support systems.
+- Debris strikes the spacecraft.
+- The connection between the modules becomes unstable.
+- The Resource Module separates from the spacecraft.
+- Both astronauts attempt to stabilize the remaining spacecraft.
 
-The Moon landing mission is cancelled, and the astronauts' only goal is to return safely to Earth.
+**Second Impact**
 
-The player takes the role of Mission Control, guiding the astronauts through this emergency. With limited oxygen, electricity, and water, the player must manage resources, repair damaged equipment, and find alternative solutions using the materials available inside the spacecraft.
+- Another piece of debris strikes the separated Resource Module.
+- The module loses its trajectory and crashes onto the lunar surface.
+- Scientific equipment, spare parts and the resource cart are lost.
 
+**Emergency Landing**
 
-Story continues like this
+- The remaining spacecraft performs an emergency landing on the Moon.
+- Both astronauts inspect the damage.
+- The helper identifies the approximate location of the crashed Resource Module.
+- The helper decides to retrieve it.
 
-# **🚀 SEVEN DAYS IN SPACE – Game Story Summary**
+**Separation**
 
-Two astronauts are travelling towards the Moon in a spacecraft consisting of three modules: a Navigation Module, a Resource Module, and a Landing Module.
+- The helper prepares for a seven-day journey.
+- Expected journey: 3.5 days to reach the module and 3.5 days to return.
+- The main astronaut stays inside the spacecraft to maintain its remaining systems.
+- The helper departs with limited supplies.
 
-On the second day of their journey, an unexpected asteroid collision damages the spacecraft. During the emergency, one module gets detached, while the Resource Module crashes onto the Moon, leaving most of their essential supplies behind.
+### **3. SEVEN DAYS ALONE | SURVIVAL CAMPAIGN**
 
-The astronauts manage to reach a lunar research station and land on the Moon. To recover their lost resources, one astronaut goes on a mission to find the crashed Resource Module. His journey will take 3.5 days each way, leaving the other astronaut alone inside the Navigation Module for seven days.
+**DAY 1 – THE OXYGEN CRISIS**
 
-**The player controls the astronaut inside the Navigation Module**, whose mission is to survive until the other astronaut returns.
+- Helper leaves the spacecraft.
+- Oxygen levels begin dropping due to a leak.
+- Player inspects the oxygen monitoring system.
+- Discovers the oxygen generation machine.
+- Connects stored water and electricity.
+- Activates electrolysis to produce oxygen.
+- Scientific discovery: Electricity can separate water into hydrogen and oxygen.
+- Consequence: Oxygen increases, but water and electricity decrease.
 
-During these seven days, the player must:
+**DAY 2 – THE SOLAR PANEL EMERGENCY**
 
-- Manage limited oxygen, electricity, food and water.
-- Repair damaged spacecraft equipment.
-- Find alternative ways to generate and recycle resources.
-- Complete daily survival missions and engineering challenges.
-- Maintain communication with the astronaut exploring the Moon.
+- Debris strikes the spacecraft again.
+- Solar panels become damaged.
+- Electricity generation drops.
+- Player inspects the panels through external cameras.
+- Experiments with electrical consumption.
+- Prioritizes oxygen production and essential systems.
+- Scientific discovery: Solar panels convert sunlight into electricity.
+- Consequence: Battery reserves begin decreasing.
 
-**Main Objective:** Keep the Navigation Module operational and survive all seven days until the second astronaut returns with the recovered resources.
+**DAY 3 – THE WATER RECOVERY CHALLENGE**
 
-*An educational space-survival adventure inspired by the Apollo 13 mission, designed for children aged 7–12.*
+- Drinking water reserves begin running low.
+- Player investigates wastewater storage.
+- Experiments with different filter materials.
+- Discovers how filtration removes unwanted particles.
+- Operates the water recovery system.
+- Recovers a limited amount of reusable water.
+- Scientific discovery: Water can be treated and reused through purification.
+- Consequence: Water increases, but electricity and filter capacity decrease.
 
+**DAY 4 – THE LOST CONNECTION**
 
+- Communication with the helper becomes unstable.
+- Player detects an antenna malfunction.
+- Inspects antenna alignment and electrical connections.
+- Experiments with signal strength.
+- Attempts a temporary repair.
+- Uses limited backup power to restore communication.
+- Scientific discovery: Antennas transmit and receive radio signals.
+- Consequence: Communication improves, but battery reserves decrease.
 
-An experienced astronaut guides the player by explaining different spacecraft equipment, their uses, and emergency procedures. Players must solve puzzles, complete engineering challenges, and make critical decisions where every choice has consequences.
+**DAY 5 – THE OXYGEN DILEMMA**
 
-**Main Objective:** Bring all three astronauts safely back to Earth through smart engineering, teamwork, problem-solving, and resource management.
+- Solar power becomes extremely limited.
+- Oxygen and water reserves approach critical levels.
+- Carbon dioxide concentration starts increasing.
+- Player investigates the CO₂ removal system.
+- Operates air circulation and filtration equipment.
+- Decides how to distribute the remaining electricity.
+- Scientific discovery: Oxygen supply and carbon dioxide removal are two different life-support requirements.
+- Consequence: Life-support systems become unstable and resources approach exhaustion.
 
-Based on NASA's real Apollo 13 mission (April 11–17, 1970), adapted as an educational survival game for children aged 7–12.
+**DAY 6 – THE POINT OF NO RETURN**
 
+- Food and drinking water are almost exhausted.
+- Solar panels barely generate electricity.
+- Multiple life-support systems begin failing.
+- Player checks the remaining inventory.
+- Attempts emergency oxygen production.
+- Discovers that essential repairs require missing spare parts.
+- Makes the final life-support decisions.
+- Helper announces that the spacecraft is almost within sight.
+- The main astronaut becomes severely weak and collapses.
 
-*making another update on storyline*
+**DAY 7 – THE RESCUE**
 
-Moon Survival Game – Project Summary
-1. Game Concept
-An educational Moon survival game where players learn real space science through exploration, research, experiments, and survival challenges.
-- Target audience: Children aged 6–10.
-- Science difficulty: Balanced — fun gameplay with simple scientific explanations.
-- Technology: A combination of real space technology and experimental/future technology.
-- Main learning concept: “Every Gain Has a Cost!”
-Whenever the player gains or produces a resource, something else is consumed, used, or lost — such as water, electricity, time, or materials.
-2. Storyline
-The game begins with two astronauts travelling towards the Moon in a spacecraft consisting of three modules.
-1. During takeoff, one module detaches and gets lost.
-2. On Day 2 of the journey, an asteroid hits the Resource Module.
-3. The Resource Module crash-lands on the Moon.
-4. The astronauts make an emergency landing.
-5. One astronaut leaves to find the lost Resource Module.
-6. The main player stays alone in the Navigation Module for seven days.
-7. The helper astronaut returns on Day 7 with resources and supplies.
-8. Day 7 Ending Cutscene
-- The main astronaut is extremely weak due to low food and energy.
-- Suddenly, the player hears “Tik… Tik… Tik…” from outside.
-- The helper astronaut returns with supplies.
-- The helper enters and gives the main astronaut food and an emergency energy drink.
-- Both astronauts recover.
-- They inspect the spacecraft, refill fuel and supplies, repair damaged systems, and prepare for departure.
-4. Final Homecoming Cutscene
-5. Both astronauts enter the spacecraft.
-6. Countdown begins: 3… 2… 1…
-7. The spacecraft takes off from the Moon.
-8. The camera follows the spacecraft moving towards Earth.
-9. Earth becomes visible through the spacecraft window.
-MISSION ACCOMPLISHED!
-WE MADE IT HOME! 🚀
-7 Days. One Mission. Two Astronauts. One Chance to Survive.
+- Helper finally reaches the spacecraft with the recovered resource cart.
+- Enters the damaged spacecraft.
+- Finds the main astronaut unconscious.
+- Provides emergency oxygen through a mask.
+- Gives emergency food and drinking water.
+- Main astronaut slowly regains consciousness.
+- Both astronauts reunite.
+- Begin restoring the spacecraft together.
 
-5. Seven-Day Gameplay Missions
-Day	Mission	Main Learning
-Day 1	Oxygen Crisis	Producing oxygen from water
-Day 2	Power Failure	Solar energy and battery storage
-Day 3	The Last Drop	Water recycling and purification
-Day 4	Lost Connection	Radio communication
-Day 5	Life Support Emergency	CO₂ removal and temperature control
-Day 6	Running Out of Supplies	Food management and hydroponics
-Day 7	The Final Countdown	Managing all resources and preparing for the helper's return
+### **4. DAY 7 | SPACECRAFT RESTORATION**
 
-6. Scientific Equipment
-The player will interact with different machines and systems.
-Equipment	Purpose
-Oxygen Generation Assembly (OGA)	Produces oxygen from water using electricity
-Water Processor	Recycles wastewater into reusable water
-CO₂ Removal System	Removes carbon dioxide from cabin air
-Sabatier Reactor	Uses hydrogen and carbon dioxide to recover some water
-Solar Panels	Convert sunlight into electricity
-Batteries	Store electricity for later use
-Thermal Control System	Maintains safe cabin temperature
-Radiation Shielding	Protects astronauts from radiation
-Hydroponic Chamber	Experiments with growing plants
-Lunar Dust Cleaner	Removes dust using experimental technology
-Research Computer	Stores manuals, experiments, and scientific information
+After the rescue, both astronauts work together.
 
-Some equipment represents existing space technology, while other equipment represents experimental or future technology.
-7. The Core Resource System
-The game will have interconnected resources:
-- Oxygen
-- Water
-- Electricity
-- Food
-- Fuel
-- Battery energy
-- Filters and spare parts
-- Raw materials
-Example: Oxygen production
+1. Recover essential supplies and research equipment from the Resource Module.
+2. Restore power distribution and battery systems.
+3. Repair damaged solar panels.
+4. Restore oxygen generation, water recovery and CO₂ removal systems.
+5. Re-establish communication with Mission Control.
+6. Perform final spacecraft safety checks.
 
-The Oxygen Generation Assembly uses water and electricity to produce oxygen and hydrogen.
-\[
-2H_2O \rightarrow 2H_2 + O_2
-\]
+**Result:** The spacecraft becomes operational again. Both astronauts are safe, and the original lunar research mission can be reconsidered.
 
-The player gains oxygen but consumes water and electricity.
+### **5. FINAL DECISION | TWO POSSIBLE ENDINGS**
 
-This is the main idea behind the game's resource-management system.
-8. Research and Experimentation System
-The player should not simply press a button to repair machines.
+**ENDING A – RETURN TO EARTH**
 
-Instead, the player follows a research process:
-1. Observe: Identify the problem.
-2. Inspect: Examine the machine and its sensors.
-3. Research: Read information from the Research Computer.
-4. Hypothesis: Predict what might solve the problem.
-5. Experiment: Test the solution.
-6. Analyze: Observe the result.
-7. Record: Save the discovery in the Research Journal.
-This makes the player a young space researcher, not just an astronaut repairing equipment.
-9. The Moon's Day and Night Cycle
-An important gameplay feature is the limited sunlight.
-- The Moon takes approximately 27.3 Earth days to rotate relative to distant stars.
-- A complete lunar day-night cycle lasts approximately 29.5 Earth days.
-- At a typical equatorial location, daylight and darkness each last around 14.75 Earth days.
-For our game's story, we can establish that the landing location has only 2.5 days of useful sunlight remaining.
-Game Day	Sunlight Condition
-Day 1	Bright sunlight
-Day 2	Solar panels generate electricity
-Day 3	Sunset approaches; power generation decreases
-Day 4	Lunar night begins
-Day 5	Battery-powered survival
-Day 6	Critical energy management
-Day 7	Helper returns
+- Player decides to prioritize safety.
+- Astronauts secure available research data and lunar samples.
+- Perform navigation and fuel checks.
+- Prepare the spacecraft for departure.
+- Launch from the Moon.
+- Earth appears in the distance.
+- Both astronauts return home safely.
 
-The player must conserve battery energy for essential systems such as oxygen management, air circulation, and heating.
+**Final Screen: MISSION ACCOMPLISHED!**
 
-Food should be rationed carefully, not deliberately eliminated.
-10. Main Educational Objective
-Children should learn:
-- How astronauts survive in space.
-- How oxygen is produced.
-- How water is recycled.
-- How solar panels generate electricity.
-- Why batteries are important.
-- How carbon dioxide is removed.
-- Why temperature control is necessary.
-- How astronauts manage limited food and resources.
-- How scientific experiments help solve problems.
-The ultimate goal: Children should understand that surviving on the Moon requires science, planning, experimentation, and smart resource management/ resource management
+The lunar water investigation remains incomplete, but the astronauts successfully survive and return home.
 
+**ENDING B – CONTINUE MOON RESEARCH**
+
+- Player decides to continue the original mission.
+- Both astronauts verify life-support systems and available supplies.
+- Retrieve the lunar water research kit.
+- Scan the lunar surface for possible water-ice deposits.
+- Collect and label a sample.
+- Conduct water-identification experiments.
+- Record and transmit scientific findings to Earth.
+- Prepare for the next phase of lunar exploration.
+
+**Final Screen: MISSION CONTINUES!**
+
+The astronauts continue their scientific journey, preparing for another discovery.
+
+### **6. COMPLETE STORYLINE FLOW**
+
+EARTH
+↓
+Mission preparation and launch
+↓
+SPACE JOURNEY
+↓
+First debris impact: Resource Module separates
+↓
+Second impact: Resource Module crashes on the Moon
+↓
+EMERGENCY MOON LANDING
+↓
+Helper departs to retrieve resources
+
+SEVEN DAYS ALONE
+↓
+Day 1: Oxygen crisis
+Day 2: Solar panel damage
+Day 3: Water recovery
+Day 4: Communication failure
+Day 5: Life-support dilemma
+Day 6: Astronaut collapses
+Day 7: Helper returns and rescues astronaut
+↓
+SPACECRAFT RESTORATION
+↓
+FINAL DECISION
+↓
+Ending A: Return to Earth
+OR
+Ending B: Continue Moon Research
+
+**CORE MESSAGE**
+
+"We came to the Moon to discover water. An accident turned our scientific mission into a fight for survival. Every experiment taught us something, every decision changed our future, and after seven days we must decide whether our journey ends at home or continues with one more discovery."
