@@ -201,6 +201,46 @@
       </div>
     </div>
 
+    <!-- Critical Mission Failure / Death Modal -->
+    <div id="death-modal" class="modal-overlay hidden">
+      <div class="death-modal-container">
+        <div class="death-alarm-stripes"></div>
+        <div class="death-badge">
+          <span class="death-skull">💀</span>
+          <span>MISSION FAILED // CREW CASUALTY</span>
+        </div>
+        <h2 id="death-title" class="death-title">CRITICAL HYPOXIA // ASPHYXIATION</h2>
+        <div id="death-sol-tag" class="death-sol-tag">CASUALTY RECORD // SOL 1</div>
+        
+        <p id="death-desc" class="death-desc">
+          Cabin oxygen pressure collapsed to 0%. The atmosphere vented into deep space and Commander Frisk suffocated before life support could be restored.
+        </p>
+
+        <!-- Final Flight Recorder Telemetry -->
+        <div class="death-telemetry-box">
+          <div class="telemetry-label">BLACK BOX TELEMETRY AT TIME OF CASUALTY:</div>
+          <div class="telemetry-grid">
+            <div class="telemetry-stat" id="death-stat-o2">💨 O₂: 0%</div>
+            <div class="telemetry-stat" id="death-stat-h2o">💧 H₂O: 88%</div>
+            <div class="telemetry-stat" id="death-stat-pwr">⚡ PWR: 92%</div>
+            <div class="telemetry-stat" id="death-stat-food">🥫 FOOD: 85%</div>
+            <div class="telemetry-stat" id="death-stat-co2">🍃 CO₂: 0.45%</div>
+          </div>
+        </div>
+
+        <!-- Tactical Survival Advice -->
+        <div class="death-tip-box">
+          <span class="tip-icon">💡</span>
+          <span id="death-tip" class="tip-text">Conserve water so you have enough reserves to split into oxygen when leaks occur.</span>
+        </div>
+
+        <div class="death-actions">
+          <button id="btn-retry-sol" class="btn-death-retry">↺ RETRY THIS SOL</button>
+          <button id="btn-restart-game-death" class="btn-death-restart">🚀 RESTART EXPEDITION</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Epilogue / Victory Modal for Endings A & B -->
     <div id="epilogue-modal" class="modal-overlay hidden">
       <div class="modal-container" style="max-width: 740px;">

@@ -1492,7 +1492,7 @@ class MoonGame3D {
   }
 
   updatePlayerMovement(delta) {
-    if (!this.astronaut || this.currentSceneName !== 'interior' || this.isWindshieldMode) return;
+    if (!this.astronaut || this.currentSceneName !== 'interior' || this.isWindshieldMode || this.isDead) return;
 
     let moveX = 0;
     let moveZ = 0;
@@ -1720,6 +1720,47 @@ class MoonGame3D {
 
   triggerScreenShake(intensity = 16) {
     this.shakeIntensity = intensity;
+  }
+
+  triggerDeathEffect() {
+    this.isDead = true;
+    this.triggerScreenShake(28);
+
+    // Astronaut slumps forward onto the cabin deck
+    if (this.astronautPitchRollGroup) {
+      this.astronautPitchRollGroup.rotation.x = Math.PI / 2.3;
+      this.astronautPitchRollGroup.position.y = -3.2;
+    }
+    if (this.helmetLight) {
+      this.helmetLight.color.setHex(0xef4444);
+      this.helmetLight.intensity = 1.0;
+    }
+
+    // Emergency red emergency strobe lighting across cabin
+    if (this.interiorGroup) {
+      if (!this.deathLight) {
+        this.deathLight = new THREE.PointLight(0xff0033, 3.8, 120);
+        this.deathLight.position.set(0, 22, 0);
+        this.interiorGroup.add(this.deathLight);
+      } else {
+        this.deathLight.intensity = 3.8;
+      }
+    }
+  }
+
+  resetDeathEffect() {
+    this.isDead = false;
+    if (this.astronautPitchRollGroup) {
+      this.astronautPitchRollGroup.rotation.x = 0;
+      this.astronautPitchRollGroup.position.y = 0;
+    }
+    if (this.helmetLight) {
+      this.helmetLight.color.setHex(0xa5f3fc);
+      this.helmetLight.intensity = 2.8;
+    }
+    if (this.deathLight) {
+      this.deathLight.intensity = 0;
+    }
   }
 
   onWindowResize() {

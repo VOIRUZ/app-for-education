@@ -556,4 +556,81 @@ class AudioEngine {
     osc.start(now);
     osc.stop(now + 0.24);
   }
+
+  // ================= DEATH, FLATLINE & LETHAL WARNING AUDIO =================
+
+  playFlatline() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    // 1. Rapid fading irregular heartbeats (3 pips)
+    for (let i = 0; i < 3; i++) {
+      const beatT = now + i * 0.22;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(80, beatT);
+      osc.frequency.exponentialRampToValueAtTime(30, beatT + 0.1);
+      gain.gain.setValueAtTime(0.18 - i * 0.04, beatT);
+      gain.gain.exponentialRampToValueAtTime(0.001, beatT + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(beatT);
+      osc.stop(beatT + 0.13);
+    }
+
+    // 2. Chilling EKG Flatline Tone (Continuous 880 Hz line)
+    const flatlineT = now + 0.75;
+    const flatlineOsc = this.ctx.createOscillator();
+    const flatlineGain = this.ctx.createGain();
+    flatlineOsc.type = 'sine';
+    flatlineOsc.frequency.setValueAtTime(880, flatlineT);
+    flatlineGain.gain.setValueAtTime(0.12, flatlineT);
+    flatlineGain.gain.setValueAtTime(0.12, flatlineT + 2.4);
+    flatlineGain.gain.exponentialRampToValueAtTime(0.001, flatlineT + 3.2);
+
+    flatlineOsc.connect(flatlineGain);
+    flatlineGain.connect(this.ctx.destination);
+    flatlineOsc.start(flatlineT);
+    flatlineOsc.stop(flatlineT + 3.3);
+
+    // 3. Deep low atmospheric depressurization whoosh
+    const bufferSize = this.ctx.sampleRate * 2;
+    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(350, flatlineT);
+    filter.frequency.exponentialRampToValueAtTime(60, flatlineT + 2.5);
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.15, flatlineT);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, flatlineT + 2.5);
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noise.start(flatlineT);
+    noise.stop(flatlineT + 2.6);
+  }
+
+  playWarningBeep() {
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    // Two-tone urgent low vital reminder (1200 Hz -> 800 Hz)
+    for (let i = 0; i < 2; i++) {
+      const t = now + i * 0.12;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(i === 0 ? 1200 : 800, t);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    }
+  }
 }

@@ -90,7 +90,19 @@ class MoonGame {
       epilogueTitle: document.getElementById('epilogue-title'),
       epilogueBadge: document.getElementById('epilogue-badge'),
       epilogueBody: document.getElementById('epilogue-body'),
-      btnRestartCampaign: document.getElementById('btn-restart-campaign')
+      btnRestartCampaign: document.getElementById('btn-restart-campaign'),
+      deathModal: document.getElementById('death-modal'),
+      deathTitle: document.getElementById('death-title'),
+      deathSolTag: document.getElementById('death-sol-tag'),
+      deathDesc: document.getElementById('death-desc'),
+      deathTip: document.getElementById('death-tip'),
+      deathStatO2: document.getElementById('death-stat-o2'),
+      deathStatH2O: document.getElementById('death-stat-h2o'),
+      deathStatPwr: document.getElementById('death-stat-pwr'),
+      deathStatFood: document.getElementById('death-stat-food'),
+      deathStatCO2: document.getElementById('death-stat-co2'),
+      btnRetrySol: document.getElementById('btn-retry-sol'),
+      btnRestartGameDeath: document.getElementById('btn-restart-game-death')
     };
 
     // Dialogue State
@@ -105,6 +117,10 @@ class MoonGame {
     // Active Day State
     this.isEventTriggered = false;
     this.isStationBusy = false;
+    this.isDead = false;
+    this.solStartResources = null;
+    this.crisisInterval = null;
+    this.lastWarningBeepTime = 0;
 
     // Among Us Style Interactive Task Subsystem
     this.tasks = new AmongUsTaskManager(this.audio);
@@ -244,6 +260,19 @@ class MoonGame {
       this.dom.epilogueModal.classList.add('hidden');
       this.resetCampaign();
     });
+
+    // Death / Mission Failure Actions
+    if (this.dom.btnRetrySol) {
+      this.dom.btnRetrySol.addEventListener('click', () => {
+        this.retryCurrentSol();
+      });
+    }
+    if (this.dom.btnRestartGameDeath) {
+      this.dom.btnRestartGameDeath.addEventListener('click', () => {
+        this.dom.deathModal.classList.add('hidden');
+        this.resetCampaign();
+      });
+    }
   }
 
   // ================= SCENARIO RUNNER & CINEMATICS =================
@@ -264,6 +293,17 @@ class MoonGame {
     this.gameState = 'DAY_PLAY';
     this.isEventTriggered = false;
     this.isStationBusy = false;
+    this.isDead = false;
+
+    // Snapshot resources at beginning of Sol so player can retry this Sol if they perish
+    this.solStartResources = { ...this.resources };
+
+    if (this.graphics && this.graphics.resetDeathEffect) {
+      this.graphics.resetDeathEffect();
+    }
+    if (this.dom.deathModal) {
+      this.dom.deathModal.classList.add('hidden');
+    }
 
     const dayData = DAYS_DATA[dayIndex];
 
@@ -285,8 +325,9 @@ class MoonGame {
       this.graphics.setActiveObjectiveStation(dayData.stationKey);
       this.dom.objectiveText.innerText = dayData.stationKey.toUpperCase();
 
-      // Trigger the Sol Event Toast
+      // Trigger the Sol Event Toast & start real-time crisis timer
       this.triggerDailyEvent(dayData);
+      this.startCrisisTimer(dayData);
     }, 2400);
   }
 
@@ -298,6 +339,205 @@ class MoonGame {
     this.dom.toastTitle.innerText = dayData.event.title;
     this.dom.toastDesc.innerText = dayData.event.desc;
     this.dom.criticalToast.classList.remove('hidden');
+  }
+
+  // ================= CRISIS LEAK TIMERS & SURVIVAL THREATS =================
+
+  startCrisisTimer(dayData) {
+    this.stopCrisisTimer();
+    if (!dayData || !dayData.stationKey || dayData.dayNumber === 7) return;
+
+    let leakType = 'o2';
+    let drainMsg = '⚠️ PRESSURE DROP: -1% O₂ / 3.5s';
+
+    if (dayData.stationKey === 'oxygen') {
+      leakType = 'o2';
+      drainMsg = '⚠️ O₂ HULL LEAK: -1% O₂ / 3s';
+    } else if (dayData.stationKey === 'power') {
+      leakType = 'power';
+      drainMsg = '⚡ POWER DRAIN: -1% PWR / 3s';
+    } else if (dayData.stationKey === 'water') {
+      leakType = 'water';
+      drainMsg = '💧 COOLANT BURST: -1% H₂O / 3.5s';
+    } else if (dayData.stationKey === 'bench') {
+      leakType = 'co2';
+      drainMsg = '☣️ CO₂ SCRUBBER SATURATION: +0.03% CO₂ / 3s';
+    } else if (dayData.stationKey === 'comms') {
+      leakType = 'power';
+      drainMsg = '⚡ HIGH VOLTAGE SURGE: -1% PWR / 4s';
+    }
+
+    // Urgency notification pill
+    let urgencyPill = document.getElementById('toast-urgency-pill');
+    if (!urgencyPill && this.dom.criticalToast) {
+      urgencyPill = document.createElement('div');
+      urgencyPill.id = 'toast-urgency-pill';
+      urgencyPill.className = 'toast-urgency';
+      this.dom.criticalToast.appendChild(urgencyPill);
+    }
+    if (urgencyPill) {
+      urgencyPill.innerText = drainMsg;
+      urgencyPill.style.display = 'block';
+    }
+
+    const intervalMs = (leakType === 'co2' || leakType === 'water') ? 3500 : 3000;
+
+    this.crisisInterval = setInterval(() => {
+      if (this.isDead || this.gameState !== 'DAY_PLAY') return;
+
+      if (leakType === 'o2') {
+        this.resources.oxygen = Math.max(0, this.resources.oxygen - 1);
+      } else if (leakType === 'power') {
+        this.resources.power = Math.max(0, this.resources.power - 1);
+      } else if (leakType === 'water') {
+        this.resources.water = Math.max(0, this.resources.water - 1);
+      } else if (leakType === 'co2') {
+        this.resources.co2 = Math.min(3.0, this.resources.co2 + 0.03);
+      }
+
+      this.updateHUD();
+
+      const fatal = this.checkVitalSigns();
+      if (fatal) {
+        this.triggerDeath(fatal);
+      }
+    }, intervalMs);
+  }
+
+  stopCrisisTimer() {
+    if (this.crisisInterval) {
+      clearInterval(this.crisisInterval);
+      this.crisisInterval = null;
+    }
+    const urgencyPill = document.getElementById('toast-urgency-pill');
+    if (urgencyPill) {
+      urgencyPill.style.display = 'none';
+    }
+  }
+
+  checkVitalSigns() {
+    if (this.resources.oxygen <= 0) {
+      return {
+        cause: 'ASPHYXIATION',
+        title: 'OXYGEN DEPLETED // SUFFOCATION',
+        desc: 'Cabin atmospheric pressure and oxygen partial pressure dropped to zero. The astronaut lost consciousness and suffered irreversible hypoxia.',
+        tip: 'Prioritize sealing hull breaches at the O₂ Generator immediately and avoid trade-offs with heavy atmospheric costs.'
+      };
+    }
+    if (this.resources.water <= 0) {
+      return {
+        cause: 'DEHYDRATION & THERMAL BOIL-OFF',
+        title: 'WATER RESERVES COLLAPSED',
+        desc: 'All potable and coolant water reserves reached 0%. Thermal loops failed and the astronaut succumbed to acute dehydration and heat stroke.',
+        tip: 'Melt polar ice core samples and service water filtration before coolant loops dry out.'
+      };
+    }
+    if (this.resources.power <= 0) {
+      return {
+        cause: 'HYPOTHERMIC FREEZE-OUT',
+        title: 'TOTAL POWER OUTAGE // CABIN FREEZE',
+        desc: 'Main electrical bus voltage collapsed to 0V. Life support heating failed during the lunar polar night (-170°C), resulting in fatal hypothermia.',
+        tip: 'Conserve battery kilowatt-hours by disabling non-essential subsystems and auxiliary science banks.'
+      };
+    }
+    if (this.resources.food <= 0) {
+      return {
+        cause: 'ACUTE STARVATION',
+        title: 'EMERGENCY RATIONS EXHAUSTED',
+        desc: 'Caloric reserves were fully depleted. The crew collapsed from acute physical exhaustion and hypoglycemic shock.',
+        tip: 'Carefully balance calorie expenditure and avoid excessive physical EVA excursions without rations.'
+      };
+    }
+    if (this.resources.co2 >= 2.0) {
+      return {
+        cause: 'HYPERCAPNIA & CO₂ TOXICITY',
+        title: 'LETHAL CO₂ TOXICITY',
+        desc: 'Carbon dioxide concentration surged past lethal limits (>2.0%). Acidosis and hypercapnic respiratory arrest ensued.',
+        tip: 'Service zeolite scrubbers and cycle lithium hydroxide canisters immediately when CO₂ exceeds 1.0%.'
+      };
+    }
+    return null;
+  }
+
+  triggerDeath(casualtyData) {
+    if (this.isDead) return;
+    this.isDead = true;
+    this.gameState = 'DEATH';
+
+    this.stopCrisisTimer();
+
+    // Sound: Flatline audio tone and alarm hiss
+    if (this.audio && this.audio.playFlatline) {
+      this.audio.playFlatline();
+    }
+
+    // 3D: Astronaut collapses to floor, helmet visor turns red, cabin red emergency strobe
+    if (this.graphics && this.graphics.triggerDeathEffect) {
+      this.graphics.triggerDeathEffect();
+    }
+
+    // Hide any overlapping active HUD / modals
+    if (this.dom.decisionPanel) this.dom.decisionPanel.classList.add('hidden');
+    if (this.dom.stationPrompt) this.dom.stationPrompt.classList.add('hidden');
+    if (this.dom.dialogueBox) this.dom.dialogueBox.classList.add('hidden');
+    if (this.dom.criticalToast) this.dom.criticalToast.classList.add('hidden');
+    if (this.dom.taskModal) this.dom.taskModal.classList.add('hidden');
+    if (this.dom.windshieldOverlay) this.dom.windshieldOverlay.classList.add('hidden');
+
+    // Populate Casualty Telemetry Record
+    const currentSolNumber = (DAYS_DATA[this.currentDayIndex] ? DAYS_DATA[this.currentDayIndex].dayNumber : this.currentDayIndex + 1);
+    if (this.dom.deathSolTag) this.dom.deathSolTag.innerText = `FATALITY RECORD // SOL ${currentSolNumber} INCIDENT`;
+    if (this.dom.deathTitle) this.dom.deathTitle.innerText = casualtyData.title;
+    if (this.dom.deathDesc) this.dom.deathDesc.innerText = casualtyData.desc;
+    if (this.dom.deathTip) this.dom.deathTip.innerText = `SURVIVAL PROTOCOL: ${casualtyData.tip}`;
+
+    if (this.dom.deathStatO2) this.dom.deathStatO2.innerText = `${Math.round(this.resources.oxygen)}%`;
+    if (this.dom.deathStatH2O) this.dom.deathStatH2O.innerText = `${Math.round(this.resources.water)}%`;
+    if (this.dom.deathStatPwr) this.dom.deathStatPwr.innerText = `${Math.round(this.resources.power)}%`;
+    if (this.dom.deathStatFood) this.dom.deathStatFood.innerText = `${Math.round(this.resources.food)}%`;
+    if (this.dom.deathStatCO2) this.dom.deathStatCO2.innerText = `${this.resources.co2.toFixed(2)}%`;
+
+    // Highlight the lethal stat in red in telemetry
+    if (this.dom.deathStatO2) this.dom.deathStatO2.style.color = this.resources.oxygen <= 0 ? '#ef4444' : '#00e5ff';
+    if (this.dom.deathStatH2O) this.dom.deathStatH2O.style.color = this.resources.water <= 0 ? '#ef4444' : '#0284c7';
+    if (this.dom.deathStatPwr) this.dom.deathStatPwr.style.color = this.resources.power <= 0 ? '#ef4444' : '#ffd54f';
+    if (this.dom.deathStatFood) this.dom.deathStatFood.style.color = this.resources.food <= 0 ? '#ef4444' : '#76ff03';
+    if (this.dom.deathStatCO2) this.dom.deathStatCO2.style.color = this.resources.co2 >= 2.0 ? '#ef4444' : '#ffd54f';
+
+    // Show Death Modal with animation
+    if (this.dom.deathModal) {
+      this.dom.deathModal.classList.remove('hidden');
+    }
+  }
+
+  retryCurrentSol() {
+    this.stopCrisisTimer();
+    this.isDead = false;
+
+    if (this.dom.deathModal) {
+      this.dom.deathModal.classList.add('hidden');
+    }
+
+    if (this.graphics && this.graphics.resetDeathEffect) {
+      this.graphics.resetDeathEffect();
+    }
+
+    // Restore resources to beginning of this Sol (or safe fallback if missing)
+    if (this.solStartResources) {
+      this.resources = { ...this.solStartResources };
+    } else {
+      this.resources = {
+        oxygen: Math.max(30, this.resources.oxygen),
+        water: Math.max(30, this.resources.water),
+        power: Math.max(30, this.resources.power),
+        food: Math.max(30, this.resources.food),
+        co2: Math.min(0.8, this.resources.co2),
+        hydrogen: this.resources.hydrogen || 0,
+        morale: Math.max(50, this.resources.morale)
+      };
+    }
+
+    this.startDay(this.currentDayIndex);
   }
 
   // ================= STATION PROXIMITY & INTERACTION =================
@@ -313,7 +553,7 @@ class MoonGame {
   }
 
   handleStationInteract(stationKey) {
-    if (this.isStationBusy) return;
+    if (this.isStationBusy || this.isDead) return;
     if (this.graphics && this.graphics.isWindshieldMode) return;
 
     const dayData = DAYS_DATA[this.currentDayIndex];
@@ -322,6 +562,7 @@ class MoonGame {
     // Check if player is interacting with the target objective station
     if (stationKey === dayData.stationKey) {
       this.isStationBusy = true;
+      this.stopCrisisTimer();
       this.dom.stationPrompt.classList.add('hidden');
       this.dom.criticalToast.classList.add('hidden');
 
@@ -494,9 +735,16 @@ class MoonGame {
     if (impact.morale) this.resources.morale = Math.max(0, Math.min(100, this.resources.morale + impact.morale));
 
     this.updateHUD();
+
+    const fatal = this.checkVitalSigns();
+    if (fatal) {
+      this.triggerDeath(fatal);
+    }
   }
 
   completeDay() {
+    this.stopCrisisTimer();
+
     const dayData = DAYS_DATA[this.currentDayIndex];
     this.audio.playChime();
 
@@ -507,6 +755,12 @@ class MoonGame {
     this.resources.co2 = Math.min(2.5, this.resources.co2 + 0.12);
 
     this.updateHUD();
+
+    const fatal = this.checkVitalSigns();
+    if (fatal) {
+      this.triggerDeath(fatal);
+      return;
+    }
 
     this.dom.endDayTitle.innerText = `SOL ${dayData.dayNumber} SURVIVED!`;
     this.dom.endDaySummary.innerHTML = `
@@ -578,10 +832,21 @@ class MoonGame {
   }
 
   resetCampaign() {
+    this.stopCrisisTimer();
+    this.isDead = false;
+
+    if (this.graphics && this.graphics.resetDeathEffect) {
+      this.graphics.resetDeathEffect();
+    }
+    if (this.dom.deathModal) {
+      this.dom.deathModal.classList.add('hidden');
+    }
+
     this.resources = {
       oxygen: 82, water: 88, power: 92, food: 85, co2: 0.45, hydrogen: 0, morale: 95
     };
     this.currentDayIndex = 0;
+    this.solStartResources = { ...this.resources };
     this.isEventTriggered = false;
     this.isStationBusy = false;
     this.dom.topHud.classList.add('hidden');
@@ -782,28 +1047,53 @@ class MoonGame {
     const co2Val = this.resources.co2;
 
     this.dom.valO2.innerText = `${o2Val}%`;
-    this.dom.barO2.style.width = `${Math.min(100, o2Val)}%`;
+    this.dom.barO2.style.width = `${Math.max(0, Math.min(100, o2Val))}%`;
     this.dom.valO2.style.color = o2Val < 25 ? '#ef4444' : '#00e5ff';
     this.dom.barO2.style.background = o2Val < 25 ? '#ef4444' : '#00e5ff';
 
     this.dom.valH2O.innerText = `${h2oVal}%`;
-    this.dom.barH2O.style.width = `${Math.min(100, h2oVal)}%`;
+    this.dom.barH2O.style.width = `${Math.max(0, Math.min(100, h2oVal))}%`;
     this.dom.valH2O.style.color = h2oVal < 25 ? '#ef4444' : '#0284c7';
     this.dom.barH2O.style.background = h2oVal < 25 ? '#ef4444' : '#0284c7';
 
     this.dom.valPwr.innerText = `${pwrVal}%`;
-    this.dom.barPwr.style.width = `${Math.min(100, pwrVal)}%`;
+    this.dom.barPwr.style.width = `${Math.max(0, Math.min(100, pwrVal))}%`;
     this.dom.valPwr.style.color = pwrVal < 25 ? '#ef4444' : '#ffd54f';
     this.dom.barPwr.style.background = pwrVal < 25 ? '#ef4444' : '#ffd54f';
 
     this.dom.valFood.innerText = `${foodVal}%`;
-    this.dom.barFood.style.width = `${Math.min(100, foodVal)}%`;
+    this.dom.barFood.style.width = `${Math.max(0, Math.min(100, foodVal))}%`;
+    this.dom.valFood.style.color = foodVal < 25 ? '#ef4444' : '#76ff03';
+    this.dom.barFood.style.background = foodVal < 25 ? '#ef4444' : '#76ff03';
 
     this.dom.valCO2.innerText = `${co2Val.toFixed(2)}%`;
-    const co2Pct = Math.min(100, Math.round((co2Val / 2.0) * 100));
+    const co2Pct = Math.max(0, Math.min(100, Math.round((co2Val / 2.0) * 100)));
     this.dom.barCO2.style.width = `${co2Pct}%`;
     this.dom.valCO2.style.color = co2Val > 1.2 ? '#ef4444' : '#76ff03';
     this.dom.barCO2.style.background = co2Val > 1.2 ? '#ef4444' : '#76ff03';
+
+    // Highlight critical stat items with flashing red border
+    const statItemO2 = this.dom.valO2 ? this.dom.valO2.closest('.stat-item') : null;
+    const statItemH2O = this.dom.valH2O ? this.dom.valH2O.closest('.stat-item') : null;
+    const statItemPwr = this.dom.valPwr ? this.dom.valPwr.closest('.stat-item') : null;
+    const statItemFood = this.dom.valFood ? this.dom.valFood.closest('.stat-item') : null;
+    const statItemCO2 = this.dom.valCO2 ? this.dom.valCO2.closest('.stat-item') : null;
+
+    if (statItemO2) statItemO2.classList.toggle('vital-critical', o2Val <= 20);
+    if (statItemH2O) statItemH2O.classList.toggle('vital-critical', h2oVal <= 20);
+    if (statItemPwr) statItemPwr.classList.toggle('vital-critical', pwrVal <= 20);
+    if (statItemFood) statItemFood.classList.toggle('vital-critical', foodVal <= 20);
+    if (statItemCO2) statItemCO2.classList.toggle('vital-critical', co2Val >= 1.2);
+
+    // Audio warning beep if any vital is critically low
+    const isAnyCritical = o2Val <= 20 || h2oVal <= 20 || pwrVal <= 20 || foodVal <= 20 || co2Val >= 1.2;
+    const now = Date.now();
+    if (isAnyCritical && !this.isDead && (now - this.lastWarningBeepTime > 3800)) {
+      this.lastWarningBeepTime = now;
+      if (this.audio && this.audio.playWarningBeep) {
+        this.audio.playWarningBeep();
+      }
+    }
   }
 
   buildDatabaseMenu() {
