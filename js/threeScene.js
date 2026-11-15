@@ -50,18 +50,12 @@ class MoonGame3D {
 
     // ================= ASTRONAUT PLAYER CHARACTER =================
     this.astronaut = null;
-    this.astronautLimbs = {
-      torso: null,
-      leftLeg: null,
-      rightLeg: null,
-      leftKnee: null,
-      rightKnee: null,
-      leftArm: null,
-      rightArm: null,
-      visor: null,
-      backpack: null
-    };
-    this.playerPos = { x: 0, y: -30.5, z: 20 };
+    this.astronautMesh = null;
+    this.astronautPitchRollGroup = null;
+    this.bones = null;
+    this.groundShadow = null;
+    this.helmetLight = null;
+    this.playerPos = { x: 0, y: -31.0, z: 20 };
     this.playerVel = { x: 0, z: 0 };
     this.targetRotation = Math.PI;
     this.walkCycle = 0;
@@ -968,14 +962,14 @@ class MoonGame3D {
   createScienceWorkbench(x, y, z, parentGroup) {
     const benchGroup = new THREE.Group();
     benchGroup.position.set(x, y, z);
-    benchGroup.userData = { stationKey: 'bench', label: 'SCIENCE WORKBENCH', baseColor: 0xf43f5e };
+    benchGroup.userData = { stationKey: 'bench', label: 'SCIENCE WORKBENCH', baseColor: 0xf43f5e, triggerRadius: 25.0 };
 
-    const tableGeo = new THREE.CylinderGeometry(16, 16, 6, 24);
+    const tableGeo = new THREE.CylinderGeometry(16, 16, 6, 32);
     const tableMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.25 });
     const tableMesh = new THREE.Mesh(tableGeo, tableMat);
     benchGroup.add(tableMesh);
 
-    const holoCoreGeo = new THREE.CylinderGeometry(5, 5, 2, 20);
+    const holoCoreGeo = new THREE.CylinderGeometry(5, 5, 2, 24);
     const holoCoreMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff });
     const holoMesh = new THREE.Mesh(holoCoreGeo, holoCoreMat);
     holoMesh.position.y = 4;
@@ -988,7 +982,8 @@ class MoonGame3D {
     screen.position.set(0, 10, -5);
     benchGroup.add(screen);
 
-    const ringGeo = new THREE.TorusGeometry(12, 0.45, 12, 36);
+    // Station Proximity Floor Ring (Radius 19.5 outside table radius 16)
+    const ringGeo = new THREE.TorusGeometry(19.5, 0.45, 12, 48);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.5 });
     const floorRing = new THREE.Mesh(ringGeo, ringMat);
     floorRing.rotation.x = Math.PI / 2;
@@ -1006,144 +1001,279 @@ class MoonGame3D {
   buildAstronautCharacter() {
     this.astronaut = new THREE.Group();
     this.astronaut.position.set(this.playerPos.x, this.playerPos.y, this.playerPos.z);
+    this.astronaut.rotation.y = this.targetRotation;
 
-    const suitMat = new THREE.MeshStandardMaterial({
-      color: 0xf1f5f9,
-      metalness: 0.15,
-      roughness: 0.65
+    // 1. Dynamic Pitch & Roll Group for Responsive Locomotion Kinematics
+    this.astronautPitchRollGroup = new THREE.Group();
+    this.astronaut.add(this.astronautPitchRollGroup);
+
+    // 2. High-Precision Contact Ground Shadow (Projects directly on floor deck)
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 128;
+    shadowCanvas.height = 128;
+    const sCtx = shadowCanvas.getContext('2d');
+    const grad = sCtx.createRadialGradient(64, 64, 6, 64, 64, 58);
+    grad.addColorStop(0, 'rgba(2, 6, 23, 0.85)');
+    grad.addColorStop(0.5, 'rgba(2, 6, 23, 0.45)');
+    grad.addColorStop(1, 'rgba(2, 6, 23, 0.0)');
+    sCtx.fillStyle = grad;
+    sCtx.fillRect(0, 0, 128, 128);
+    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+
+    const shadowGeo = new THREE.PlaneGeometry(14, 14);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: shadowTex,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false
     });
+    this.groundShadow = new THREE.Mesh(shadowGeo, shadowMat);
+    this.groundShadow.rotation.x = -Math.PI / 2;
+    this.groundShadow.position.y = 0.06;
+    this.astronaut.add(this.groundShadow);
 
-    const jointMat = new THREE.MeshStandardMaterial({
-      color: 0x334155,
-      metalness: 0.5,
-      roughness: 0.4
-    });
+    // 3. Astronaut Exploration Beam / Helmet Lamp
+    const helmetLight = new THREE.SpotLight(0xa5f3fc, 2.8, 65, Math.PI / 3.8, 0.45, 1.4);
+    helmetLight.position.set(0, 15, 2.0);
+    const helmetLightTarget = new THREE.Object3D();
+    helmetLightTarget.position.set(0, 8, 35);
+    this.astronautPitchRollGroup.add(helmetLight);
+    this.astronautPitchRollGroup.add(helmetLightTarget);
+    helmetLight.target = helmetLightTarget;
+    this.helmetLight = helmetLight;
 
-    // Torso
-    const torsoGeo = new THREE.BoxGeometry(4.8, 6.8, 3.4);
-    const torso = new THREE.Mesh(torsoGeo, suitMat);
-    torso.position.y = 8.5;
-    this.astronaut.add(torso);
-    this.astronautLimbs.torso = torso;
+    // 4. Subtle suit chest indicator light (soft local ambient glow)
+    const chestGlow = new THREE.PointLight(0x00e5ff, 0.8, 18);
+    chestGlow.position.set(0, 10, 3.0);
+    this.astronautPitchRollGroup.add(chestGlow);
 
-    // DCM
-    const dcmGeo = new THREE.BoxGeometry(3.0, 3.0, 1.2);
-    const dcmMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 });
-    const dcm = new THREE.Mesh(dcmGeo, dcmMat);
-    dcm.position.set(0, 8.8, 2.0);
-    this.astronaut.add(dcm);
+    // 5. Load and Rig the Realistic 3D Astronaut GLB Model (Jungle Jim EVA Suit)
+    this.astronautMesh = null;
+    this.bones = null;
 
-    const dcmScreen = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.8, 1.2),
-      new THREE.MeshBasicMaterial({ color: 0x00e5ff })
-    );
-    dcmScreen.position.set(0, 9.2, 2.65);
-    this.astronaut.add(dcmScreen);
+    const loadGLBModel = () => {
+      if (typeof THREE.GLTFLoader !== 'function') {
+        setTimeout(loadGLBModel, 80);
+        return;
+      }
 
-    // PLSS Backpack
-    const plssGeo = new THREE.BoxGeometry(4.6, 7.2, 2.8);
-    const plssMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.4, roughness: 0.4 });
-    const plss = new THREE.Mesh(plssGeo, plssMat);
-    plss.position.set(0, 8.8, -2.5);
-    this.astronaut.add(plss);
-    this.astronautLimbs.backpack = plss;
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        'assets/models/astronaut.glb',
+        (gltf) => {
+          console.log('🧑‍🚀 Jungle Jim 3D Astronaut Model loaded successfully!');
 
-    const tankGeo = new THREE.CylinderGeometry(0.9, 0.9, 5.5, 16);
-    const tankMat = new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.85, roughness: 0.2 });
-    const tank1 = new THREE.Mesh(tankGeo, tankMat);
-    tank1.position.set(-1.4, 8.8, -3.8);
-    this.astronaut.add(tank1);
+          // Extract the upright and symmetrical RootNode
+          let model = gltf.scene.getObjectByName('RootNode') || gltf.scene;
 
-    const tank2 = new THREE.Mesh(tankGeo, tankMat);
-    tank2.position.set(1.4, 8.8, -3.8);
-    this.astronaut.add(tank2);
+          // Target body container holding all body meshes
+          const bodyContainer = gltf.scene.getObjectByName('Astronaut_|_Original_mesh_-_assigned_materials');
 
-    // Helmet & Visor
-    const neckRing = new THREE.Mesh(
-      new THREE.TorusGeometry(2.1, 0.35, 12, 24),
-      new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.9, roughness: 0.2 })
-    );
-    neckRing.rotation.x = Math.PI / 2;
-    neckRing.position.y = 12.2;
-    this.astronaut.add(neckRing);
+          if (bodyContainer) {
+            // Rigging: Add calibrated anatomical bone hierarchy for full limb walking movement
+            const hips = new THREE.Bone();
+            hips.name = 'Hips';
+            hips.position.set(0, 0.52, 0.04);
 
-    const helmetGeo = new THREE.SphereGeometry(2.5, 24, 24);
-    const helmet = new THREE.Mesh(helmetGeo, suitMat);
-    helmet.position.y = 14.4;
-    this.astronaut.add(helmet);
+            const spine = new THREE.Bone();
+            spine.name = 'Spine';
+            spine.position.set(0, 0.22, 0);
+            hips.add(spine);
 
-    const visorGeo = new THREE.SphereGeometry(2.35, 24, 24, 0, Math.PI, 0, Math.PI * 0.75);
-    const visorMat = new THREE.MeshStandardMaterial({
-      color: 0xffb703,
-      emissive: 0x451a03,
-      metalness: 0.95,
-      roughness: 0.08,
-      side: THREE.DoubleSide
-    });
-    const visor = new THREE.Mesh(visorGeo, visorMat);
-    visor.rotation.x = -Math.PI / 2;
-    visor.position.set(0, 14.5, 0.4);
-    this.astronaut.add(visor);
-    this.astronautLimbs.visor = visor;
+            // Left Leg Bones
+            const leftThigh = new THREE.Bone();
+            leftThigh.name = 'LeftThigh';
+            leftThigh.position.set(-0.11, -0.01, 0.01);
+            hips.add(leftThigh);
 
-    // Legs
-    this.astronautLimbs.leftLeg = new THREE.Group();
-    this.astronautLimbs.leftLeg.position.set(-1.6, 5.2, 0);
-    const thighL = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 4.2, 16), suitMat);
-    thighL.position.y = -2.1;
-    this.astronautLimbs.leftLeg.add(thighL);
+            const leftShin = new THREE.Bone();
+            leftShin.name = 'LeftShin';
+            leftShin.position.set(0, -0.25, 0.01);
+            leftThigh.add(leftShin);
 
-    this.astronautLimbs.leftKnee = new THREE.Group();
-    this.astronautLimbs.leftKnee.position.set(0, -4.2, 0);
-    const shinL = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.9, 4.2, 16), suitMat);
-    shinL.position.y = -2.1;
-    this.astronautLimbs.leftKnee.add(shinL);
+            // Right Leg Bones
+            const rightThigh = new THREE.Bone();
+            rightThigh.name = 'RightThigh';
+            rightThigh.position.set(0.11, -0.01, 0.01);
+            hips.add(rightThigh);
 
-    const bootL = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.4, 3.4), jointMat);
-    bootL.position.set(0, -4.6, 0.6);
-    this.astronautLimbs.leftKnee.add(bootL);
-    this.astronautLimbs.leftLeg.add(this.astronautLimbs.leftKnee);
-    this.astronaut.add(this.astronautLimbs.leftLeg);
+            const rightShin = new THREE.Bone();
+            rightShin.name = 'RightShin';
+            rightShin.position.set(0, -0.25, 0.01);
+            rightThigh.add(rightShin);
 
-    this.astronautLimbs.rightLeg = new THREE.Group();
-    this.astronautLimbs.rightLeg.position.set(1.6, 5.2, 0);
-    const thighR = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 4.2, 16), suitMat);
-    thighR.position.y = -2.1;
-    this.astronautLimbs.rightLeg.add(thighR);
+            // Left Arm Bone
+            const leftArm = new THREE.Bone();
+            leftArm.name = 'LeftArm';
+            leftArm.position.set(-0.175, 0.02, 0.05);
+            spine.add(leftArm);
 
-    this.astronautLimbs.rightKnee = new THREE.Group();
-    this.astronautLimbs.rightKnee.position.set(0, -4.2, 0);
-    const shinR = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.9, 4.2, 16), suitMat);
-    shinR.position.y = -2.1;
-    this.astronautLimbs.rightKnee.add(shinR);
+            // Right Arm Bone
+            const rightArm = new THREE.Bone();
+            rightArm.name = 'RightArm';
+            rightArm.position.set(0.175, 0.02, 0.05);
+            spine.add(rightArm);
 
-    const bootR = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.4, 3.4), jointMat);
-    bootR.position.set(0, -4.6, 0.6);
-    this.astronautLimbs.rightKnee.add(bootR);
-    this.astronautLimbs.rightLeg.add(this.astronautLimbs.rightKnee);
-    this.astronaut.add(this.astronautLimbs.rightLeg);
+            bodyContainer.add(hips);
 
-    // Arms
-    this.astronautLimbs.leftArm = new THREE.Group();
-    this.astronautLimbs.leftArm.position.set(-3.2, 10.8, 0);
-    const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 6.4, 16), suitMat);
-    armL.position.y = -3.2;
-    this.astronautLimbs.leftArm.add(armL);
-    this.astronaut.add(this.astronautLimbs.leftArm);
+            const bones = [
+              hips, spine, leftThigh, leftShin, rightThigh, rightShin, leftArm, rightArm
+            ];
 
-    this.astronautLimbs.rightArm = new THREE.Group();
-    this.astronautLimbs.rightArm.position.set(3.2, 10.8, 0);
-    const armR = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 6.4, 16), suitMat);
-    armR.position.y = -3.2;
-    this.astronautLimbs.rightArm.add(armR);
+            // Temporary add to scene to evaluate rest-pose world matrices
+            this.scene.add(model);
+            this.scene.updateMatrixWorld(true);
 
-    const wristScreen = new THREE.Mesh(
-      new THREE.BoxGeometry(0.7, 0.5, 0.2),
-      new THREE.MeshBasicMaterial({ color: 0x00e5ff })
-    );
-    wristScreen.position.set(0.6, -5.5, 0.4);
-    this.astronautLimbs.rightArm.add(wristScreen);
-    this.astronaut.add(this.astronautLimbs.rightArm);
+            const skeleton = new THREE.Skeleton(bones);
+
+            // Convert body meshes into SkinnedMesh with limb skinning weights
+            const meshesToConvert = [];
+            bodyContainer.traverse((child) => {
+              if (child.isMesh) meshesToConvert.push(child);
+            });
+
+            meshesToConvert.forEach((child) => {
+              const geo = child.geometry.clone();
+              const pos = geo.attributes.position;
+              const skinIndices = [];
+              const skinWeights = [];
+
+              for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+
+                let idx = 1; // Default to Spine (torso/head)
+
+                // Arms & Hands: outside |x| > 0.138 (upper arm) or |x| > 0.188 (lower arm/glove)
+                const isArm = (y <= 0.82) && ((y >= 0.48 && Math.abs(x) > 0.138) || (y < 0.48 && Math.abs(x) > 0.188));
+                if (isArm) {
+                  idx = (x < 0) ? 6 : 7; // LeftArm : RightArm
+                } else if (y < 0.525) {
+                  // Legs & Boots
+                  const isLeft = x < 0;
+                  const thighIdx = isLeft ? 2 : 4;
+                  const shinIdx = isLeft ? 3 : 5;
+                  idx = (y < 0.26) ? shinIdx : thighIdx;
+                } else if (y < 0.62) {
+                  idx = 0; // Hips
+                } else {
+                  idx = 1; // Spine
+                }
+
+                skinIndices.push(idx, 0, 0, 0);
+                skinWeights.push(1.0, 0, 0, 0);
+              }
+
+              geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
+              geo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
+
+              const mat = child.material.clone();
+              mat.skinning = true;
+              mat.needsUpdate = true;
+
+              const skinned = new THREE.SkinnedMesh(geo, mat);
+              skinned.name = child.name;
+              skinned.castShadow = true;
+              skinned.receiveShadow = true;
+
+              const parent = child.parent;
+              parent.remove(child);
+              parent.add(skinned);
+
+              skinned.bind(skeleton);
+            });
+
+            this.bones = {
+              hips,
+              spine,
+              leftThigh,
+              leftShin,
+              rightThigh,
+              rightShin,
+              leftArm,
+              rightArm,
+              skeleton
+            };
+
+            this.scene.remove(model);
+          }
+
+          // Enhance all materials for realistic NASA PBR rendering & shadows
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+
+              if (child.material) {
+                child.material.side = THREE.FrontSide;
+                const matName = (child.material.name || '').toLowerCase();
+                const nodeName = (child.name || '').toLowerCase();
+                const combined = matName + ' ' + nodeName;
+
+                // Gold Reflective Visor
+                if (combined.includes('visor') || combined.includes('07')) {
+                  child.material.metalness = 0.95;
+                  child.material.roughness = 0.12;
+                  child.material.color.setHex(0xf59e0b);
+                  child.material.emissive.setHex(0x451a03);
+                }
+                // Helmet Lamps & Display Lights
+                else if (combined.includes('lamp') || combined.includes('12')) {
+                  child.material.emissive.setHex(0xe0f2fe);
+                  child.material.emissiveIntensity = 1.0;
+                }
+                else if (combined.includes('display') || combined.includes('08')) {
+                  child.material.emissive.setHex(0x00e5ff);
+                  child.material.emissiveIntensity = 0.85;
+                }
+                // Ivory Enamel Rigid Shell
+                else if (combined.includes('shell') || combined.includes('02')) {
+                  child.material.roughness = 0.32;
+                  child.material.metalness = 0.25;
+                }
+                // Charcoal Rubber & Joints
+                else if (combined.includes('rubber') || combined.includes('04')) {
+                  child.material.roughness = 0.82;
+                  child.material.metalness = 0.05;
+                }
+                // Warm White Fabric Suit
+                else if (combined.includes('suit') || combined.includes('fabric') || combined.includes('01')) {
+                  child.material.roughness = 0.68;
+                  child.material.metalness = 0.12;
+                }
+                // Brushed Hardware & Gunmetal
+                else if (combined.includes('hardware') || combined.includes('fittings')) {
+                  child.material.roughness = 0.28;
+                  child.material.metalness = 0.85;
+                }
+              }
+            }
+          });
+
+          // Scale model to match the game's cabin proportions (height ~19.5 units)
+          const targetHeight = 19.5;
+          const box = new THREE.Box3().setFromObject(model);
+          const rawHeight = (box.max.y - box.min.y) || 100.0;
+          const scaleFactor = targetHeight / rawHeight;
+          model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+          // Re-measure after scaling: center on X/Z and align soles of boots precisely at Y = 0
+          box.setFromObject(model);
+          model.position.x = - (box.min.x + box.max.x) / 2;
+          model.position.y = - box.min.y; // Lowest point of boots rests at y = 0
+          model.position.z = - (box.min.z + box.max.z) / 2;
+
+          this.astronautMesh = model;
+          this.astronautPitchRollGroup.add(model);
+        },
+        undefined,
+        (error) => {
+          console.error('Error loading astronaut GLB model:', error);
+        }
+      );
+    };
+
+    loadGLBModel();
 
     this.interiorGroup.add(this.astronaut);
   }
@@ -1287,8 +1417,16 @@ class MoonGame3D {
 
         const stationObj = this.stations[targetStationKey];
         if (stationObj) {
-          const targetX = targetStationKey === 'bench' ? 0 : (stationObj.position.x > 0 ? 12 : -12);
-          const targetZ = stationObj.position.z;
+          let targetX, targetZ;
+          if (targetStationKey === 'bench') {
+            // Target outside workbench facing it from the player's approach angle
+            const angle = Math.atan2(this.playerPos.z - (-2), this.playerPos.x - 0);
+            targetX = Math.cos(angle) * 20.0;
+            targetZ = -2 + Math.sin(angle) * 20.0;
+          } else {
+            targetX = stationObj.position.x > 0 ? 12 : -12;
+            targetZ = stationObj.position.z;
+          }
           this.setClickTarget(targetX, targetZ, () => {
             if (this.onStationInteractCallback) {
               this.onStationInteractCallback(targetStationKey);
@@ -1332,8 +1470,18 @@ class MoonGame3D {
 
   setClickTarget(x, z, onArrival = null) {
     if (this.isWindshieldMode) return;
-    const clampedX = Math.max(-24, Math.min(24, x));
-    const clampedZ = Math.max(-62, Math.min(62, z));
+    let clampedX = Math.max(-24, Math.min(24, x));
+    let clampedZ = Math.max(-62, Math.min(62, z));
+
+    // Keep click destination outside central science workbench (center: 0, -2, radius 16)
+    const benchDx = clampedX - 0;
+    const benchDz = clampedZ - (-2);
+    const benchDist = Math.hypot(benchDx, benchDz);
+    if (benchDist < 20.0) {
+      const angle = benchDist > 0.001 ? Math.atan2(benchDz, benchDx) : (this.playerPos.z >= -2 ? Math.PI / 2 : -Math.PI / 2);
+      clampedX = Math.cos(angle) * 20.2;
+      clampedZ = -2 + Math.sin(angle) * 20.2;
+    }
 
     this.clickTarget = { x: clampedX, z: clampedZ, onArrival };
 
@@ -1387,45 +1535,122 @@ class MoonGame3D {
     this.playerPos.x += this.playerVel.x * delta;
     this.playerPos.z += this.playerVel.z * delta;
 
-    this.playerPos.x = Math.max(-26, Math.min(26, this.playerPos.x));
-    this.playerPos.z = Math.max(-65, Math.min(65, this.playerPos.z));
+    // Obstacle Collision 1: Central Science Workbench (center: 0, -2; radius 16 + astronaut radius 3.5 = 19.5)
+    const benchDx = this.playerPos.x - 0;
+    const benchDz = this.playerPos.z - (-2);
+    const benchDist = Math.hypot(benchDx, benchDz);
+    const minBenchDist = 19.5;
+    if (benchDist < minBenchDist) {
+      const angle = benchDist > 0.001 ? Math.atan2(benchDz, benchDx) : Math.PI / 2;
+      this.playerPos.x = Math.cos(angle) * minBenchDist;
+      this.playerPos.z = -2 + Math.sin(angle) * minBenchDist;
+
+      // Remove inward velocity component for smooth perimeter sliding
+      const normalX = Math.cos(angle);
+      const normalZ = Math.sin(angle);
+      const normalVel = this.playerVel.x * normalX + this.playerVel.z * normalZ;
+      if (normalVel < 0) {
+        this.playerVel.x -= normalVel * normalX;
+        this.playerVel.z -= normalVel * normalZ;
+      }
+    }
+
+    // Obstacle Collision 2: Side Equipment Consoles (x = ±26, z = ±25) and Habitat Boundaries
+    const nearSideConsoles = Math.abs(this.playerPos.z - (-25)) < 13.5 || Math.abs(this.playerPos.z - 25) < 13.5;
+    const maxX = nearSideConsoles ? 17.8 : 25.0;
+    this.playerPos.x = Math.max(-maxX, Math.min(maxX, this.playerPos.x));
+    this.playerPos.z = Math.max(-65.0, Math.min(65.0, this.playerPos.z));
 
     this.astronaut.position.x = this.playerPos.x;
     this.astronaut.position.z = this.playerPos.z;
 
+    // 1. Smooth, responsive angular heading (Yaw)
     let diff = this.targetRotation - this.astronaut.rotation.y;
     while (diff < -Math.PI) diff += Math.PI * 2;
     while (diff > Math.PI) diff -= Math.PI * 2;
-    this.astronaut.rotation.y += diff * 0.18;
+    this.astronaut.rotation.y += diff * 0.20;
 
+    // 2. High-precision locomotion kinematics with skeletal walking animation
     if (this.isMoving && len > 0.05) {
-      this.walkCycle += delta * 12;
+      this.walkCycle += delta * 11.5;
+      const stride = Math.sin(this.walkCycle);
 
-      this.astronautLimbs.leftLeg.rotation.x = Math.sin(this.walkCycle) * 0.55;
-      this.astronautLimbs.rightLeg.rotation.x = -Math.sin(this.walkCycle) * 0.55;
+      // Articulate arms and legs via skeletal skinning
+      if (this.bones) {
+        // Legs: alternating forward and backward swing
+        this.bones.leftThigh.rotation.x = stride * 0.48;
+        this.bones.leftShin.rotation.x = Math.max(0, -stride * 0.42);
 
-      this.astronautLimbs.leftKnee.rotation.x = Math.max(0, -Math.sin(this.walkCycle) * 0.5);
-      this.astronautLimbs.rightKnee.rotation.x = Math.max(0, Math.sin(this.walkCycle) * 0.5);
+        this.bones.rightThigh.rotation.x = -stride * 0.48;
+        this.bones.rightShin.rotation.x = Math.max(0, stride * 0.42);
 
-      this.astronautLimbs.leftArm.rotation.x = -Math.sin(this.walkCycle) * 0.4;
-      this.astronautLimbs.rightArm.rotation.x = Math.sin(this.walkCycle) * 0.4;
+        // Arms: natural counter-swing to legs
+        this.bones.leftArm.rotation.x = -stride * 0.42;
+        this.bones.rightArm.rotation.x = stride * 0.42;
 
-      this.astronaut.position.y = this.playerPos.y + Math.abs(Math.sin(this.walkCycle)) * 0.4;
+        // Subtle torso counter-rotation
+        this.bones.spine.rotation.y = -stride * 0.04;
+        this.bones.skeleton.update();
+      }
 
+      // Vertical stride heave (authentic low-gravity / magnetic boot stride)
+      const strideBob = Math.abs(stride) * 0.35;
+      this.astronaut.position.y = this.playerPos.y + strideBob;
+
+      if (this.astronautPitchRollGroup) {
+        // Forward lean proportional to movement momentum (pitch)
+        const targetPitch = 0.08;
+        this.astronautPitchRollGroup.rotation.x = THREE.MathUtils.lerp(this.astronautPitchRollGroup.rotation.x, targetPitch, 0.14);
+
+        // Dynamic banking into curves (roll)
+        const targetRoll = THREE.MathUtils.clamp(-diff * 0.25, -0.16, 0.16);
+        this.astronautPitchRollGroup.rotation.z = THREE.MathUtils.lerp(this.astronautPitchRollGroup.rotation.z, targetRoll, 0.12);
+
+        // Lateral weight-shift gait sway (side-to-side torso sway)
+        const lateralSway = Math.sin(this.walkCycle) * 0.045;
+        this.astronautPitchRollGroup.rotation.y = lateralSway;
+      }
+
+      // Dynamic ground shadow response
+      if (this.groundShadow) {
+        const shadowScale = 1.0 - (strideBob / 0.35) * 0.16;
+        this.groundShadow.scale.set(shadowScale, shadowScale, shadowScale);
+        this.groundShadow.material.opacity = 0.65 - (strideBob / 0.35) * 0.22;
+      }
+
+      // Footstep audio synchronization
       const now = performance.now();
-      if (Math.abs(Math.sin(this.walkCycle)) > 0.92 && now - this.lastFootstepTime > 320) {
+      if (Math.abs(stride) > 0.90 && now - this.lastFootstepTime > 310) {
         if (this.audioRef) this.audioRef.playFootstep();
         this.lastFootstepTime = now;
       }
     } else {
-      this.astronautLimbs.leftLeg.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.leftLeg.rotation.x, 0, 0.1);
-      this.astronautLimbs.rightLeg.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.rightLeg.rotation.x, 0, 0.1);
-      this.astronautLimbs.leftKnee.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.leftKnee.rotation.x, 0, 0.1);
-      this.astronautLimbs.rightKnee.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.rightKnee.rotation.x, 0, 0.1);
-      this.astronautLimbs.leftArm.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.leftArm.rotation.x, 0, 0.1);
-      this.astronautLimbs.rightArm.rotation.x = THREE.MathUtils.lerp(this.astronautLimbs.rightArm.rotation.x, 0, 0.1);
+      // Idle state: Smooth deceleration of limbs back to neutral rest pose
+      if (this.bones) {
+        this.bones.leftThigh.rotation.x = THREE.MathUtils.lerp(this.bones.leftThigh.rotation.x, 0, 0.12);
+        this.bones.leftShin.rotation.x = THREE.MathUtils.lerp(this.bones.leftShin.rotation.x, 0, 0.12);
+        this.bones.rightThigh.rotation.x = THREE.MathUtils.lerp(this.bones.rightThigh.rotation.x, 0, 0.12);
+        this.bones.rightShin.rotation.x = THREE.MathUtils.lerp(this.bones.rightShin.rotation.x, 0, 0.12);
+        this.bones.leftArm.rotation.x = THREE.MathUtils.lerp(this.bones.leftArm.rotation.x, 0, 0.12);
+        this.bones.rightArm.rotation.x = THREE.MathUtils.lerp(this.bones.rightArm.rotation.x, 0, 0.12);
+        this.bones.spine.rotation.y = THREE.MathUtils.lerp(this.bones.spine.rotation.y, 0, 0.12);
+        this.bones.skeleton.update();
+      }
 
-      this.astronaut.position.y = this.playerPos.y + Math.sin(this.animTime * 2.2) * 0.15;
+      if (this.astronautPitchRollGroup) {
+        this.astronautPitchRollGroup.rotation.x = THREE.MathUtils.lerp(this.astronautPitchRollGroup.rotation.x, 0, 0.10);
+        this.astronautPitchRollGroup.rotation.z = THREE.MathUtils.lerp(this.astronautPitchRollGroup.rotation.z, 0, 0.10);
+        this.astronautPitchRollGroup.rotation.y = THREE.MathUtils.lerp(this.astronautPitchRollGroup.rotation.y, 0, 0.10);
+      }
+
+      // Microgravity floating oscillation & breathing (grounded at floor deck)
+      const idleFloat = Math.sin(this.animTime * 1.8) * 0.08;
+      this.astronaut.position.y = this.playerPos.y + Math.max(0, idleFloat);
+
+      if (this.groundShadow) {
+        this.groundShadow.scale.set(1.0, 1.0, 1.0);
+        this.groundShadow.material.opacity = 0.65;
+      }
     }
 
     this.checkStationProximity();
@@ -1433,14 +1658,18 @@ class MoonGame3D {
 
   checkStationProximity() {
     let closest = null;
-    let minDist = 16.0;
+    let closestFactor = 1.0;
 
     for (const key in this.stations) {
       const st = this.stations[key];
+      const triggerRadius = st.userData.triggerRadius || (key === 'bench' ? 25.0 : (key === 'windshield' ? 22.0 : 18.0));
       const dist = Math.hypot(st.position.x - this.playerPos.x, st.position.z - this.playerPos.z);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = st;
+      if (dist < triggerRadius) {
+        const factor = dist / triggerRadius;
+        if (factor < closestFactor) {
+          closestFactor = factor;
+          closest = st;
+        }
       }
     }
 

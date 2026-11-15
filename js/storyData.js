@@ -632,3 +632,6 @@ const NASA_TOPICS = [
     desc: 'With local water ice for drinking and rocket fuel, humans can build permanent research bases on the Moon as the launchpad for Mars!'
   }
 ];
+
+// Alias for research database
+const RESEARCH_DATABASE = NASA_TOPICS;

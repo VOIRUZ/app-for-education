@@ -195,7 +195,8 @@ class MoonGame {
       if (dayData && this.graphics.stations[dayData.stationKey]) {
         const st = this.graphics.stations[dayData.stationKey];
         const targetX = dayData.stationKey === 'bench' ? 0 : (st.position.x > 0 ? 12 : -12);
-        this.graphics.setClickTarget(targetX, st.position.z, () => {
+        const targetZ = dayData.stationKey === 'bench' ? (st.position.z + 20.0) : st.position.z;
+        this.graphics.setClickTarget(targetX, targetZ, () => {
           this.handleStationInteract(dayData.stationKey);
         });
       }
@@ -854,5 +855,6 @@ class MoonGame {
 // Auto-boot on window load
 window.addEventListener('DOMContentLoaded', () => {
   const game = new MoonGame();
+  window.game = game;
   game.init();
 });
