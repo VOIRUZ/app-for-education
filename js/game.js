@@ -1118,26 +1118,33 @@ class MoonGame {
   }
 
   showDatabaseCard(item) {
+    if (!item) return;
     let stepsHTML = '';
-    item.howItWorks.forEach(st => {
-      stepsHTML += `<li>${st}</li>`;
-    });
+    if (item.howItWorks && Array.isArray(item.howItWorks)) {
+      item.howItWorks.forEach(st => {
+        stepsHTML += `<li>${st}</li>`;
+      });
+    }
+
+    const icon = item.icon || '🔬';
+    const tag = item.tag || item.category || 'NASA RESEARCH';
+    const formula = item.formula ? `<div class="db-formula">🔬 ${item.formula}</div>` : '';
+    const summary = item.summary || item.desc || '';
+    const funFact = item.funFact ? `<div class="db-fun-fact">💡 <strong>NASA & ASTRONOMY FACT:</strong><br>${item.funFact}</div>` : '';
+    const stepsBlock = stepsHTML ? `<h3>HOW IT WORKS:</h3><ol class="db-steps-list">${stepsHTML}</ol>` : '';
 
     this.dom.dbDetailCard.innerHTML = `
       <div class="db-header-row">
-        <span class="db-card-icon">${item.icon}</span>
+        <span class="db-card-icon">${icon}</span>
         <div>
-          <h2>${item.title}</h2>
-          <span class="db-tag">${item.tag}</span>
+          <h2>${item.title || ''}</h2>
+          <span class="db-tag">${tag}</span>
         </div>
       </div>
-      <div class="db-formula">🔬 ${item.formula}</div>
-      <p class="db-summary">${item.summary}</p>
-      <h3>HOW IT WORKS:</h3>
-      <ol class="db-steps-list">${stepsHTML}</ol>
-      <div class="db-fun-fact">
-        💡 <strong>NASA & ASTRONOMY FACT:</strong><br>${item.funFact}
-      </div>
+      ${formula}
+      <p class="db-summary">${summary}</p>
+      ${stepsBlock}
+      ${funFact}
     `;
   }
 }
