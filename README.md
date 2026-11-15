@@ -37,11 +37,11 @@ Through five narrative-driven mission chapters, learners experience the real tra
 
 | Member Name | Home Institution | GitHub Username | Role & Engineering Focus |
 |---|---|---|---|
-| Neel Tawre | Wainganga College of Engineering & Management | [@nirukun](https://github.com/nirukun) | Full-Stack Architecture & State Management |
-| Sanket Paradkar | Wainganga College of Engineering & Management | [@geeksanket](https://github.com/geeksanket) | Simulation Logic, Subsystem Math & Engine |
-| Viral Bodbe | Wainganga College of Engineering & Management | [@Viral-Bodbe](https://github.com/Viral-Bodbe) | UI/UX Design, Visual Assets & Responsive Layout |
-| Gauri Choudhary | Wainganga College of Engineering & Management | [@gaurichoudhary](https://github.com/gaurichoudhary) | Mission Narrative, STEM Curriculum & Research |
-| Dharti Charpe | Wainganga College of Engineering & Management | [@dharticharpe](https://github.com/dharticharpe) | Testing, Parameter Validation & Quality Assurance |
+| Neel Tawre | G.H. Raisoni University | [@nirukun](https://github.com/nirukun) | Full-Stack Architecture & State Management |
+| Sanket Paradkar | G.H. Raisoni University | [@geeksanket](https://github.com/geeksanket) | Mission Narrative, STEM Curriculum & Research |
+| Viral Bodbe | G.H. Raisoni University | [@Viral-Bodbe](https://github.com/Viral-Bodbe) | Full-Stack Architecture & State Management |
+| Gauri Choudhary | G.H. Raisoni University | [@gaurichoudhary](https://github.com/gaurichoudhary) | Mission Narrative, STEM Curriculum & Research |
+| Dharti Charpe | S.B.Jain Institute of Management & Technology | [@dharticharpe](https://github.com/dharticharpe) | Mission Narrative, Testing, Parameter Validation & Quality Assurance |
 
 *Per Nagpur Participant Handbook Rule 4, each registered team member contributes directly with verified personal commits.*
 
